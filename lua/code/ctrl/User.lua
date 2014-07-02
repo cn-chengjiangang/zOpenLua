@@ -17,7 +17,7 @@ local User = {}
 -- @param string passwd 用户密码
 -- @param number icon 头像ID
 -- @param number heroId 英雄ID
--- @return {"userData":{"user":<user>,"heros":[<userHero>],"equips":[<userEquip>]},"zoneOffset":0,"serverTime":1404277233,"token":"97d7f3d079540c8d42224d2ca0a66d66","pushVer":1140}
+-- @return {"userData":{"user":{"level":1,"loginTime":1404302188,"icon":2,"id":4,"status":0,"lastModify":1404198234,"maxEnergy":120,"loginIp":"61.148.75.238","regTime":1404198234,"passwd":"d0e16bcc1e6afadf7154183c9e78114c683e6563","exp":0,"regIp":"61.148.75.238","gold":9948510,"name":"zivn","lastEnergy":120},"heros":[{"level":1,"att":53,"id":12,"hp":243,"heroId":4,"dodge":5,"price":1220,"exp":0,"crit":20,"hit":95,"userId":4,"def":24},{"level":1,"att":143,"id":4,"hp":394,"heroId":1,"dodge":20,"price":1220,"exp":0,"crit":20,"hit":80,"userId":4,"def":25}],"equips":[{"level":9,"price":7050,"position":1,"id":1,"effects":[{"type":101,"value":140},{"type":100,"value":50}],"heroId":0,"userId":4,"equipId":1},{"level":1,"price":3050,"position":1,"id":2,"effects":[{"type":101,"value":100},{"type":100,"value":50}],"heroId":4,"userId":4,"equipId":1}]},"zoneOffset":0,"serverTime":1404302188,"token":"4e8e395aef51ca64fc34b5e1739a9157","pushVer":1555}
 function User:register()
     local name = request:getStrParam("name", true, true)
     local passwd = request:getStrParam("passwd", true)
@@ -69,7 +69,7 @@ end
 --
 -- @param string name 用户名称
 -- @param string passwd 用户密码
--- @return {"userData":{"user":<user>,"heros":[<userHero>],"equips":[<userEquip>]},"zoneOffset":0,"serverTime":1404277233,"token":"97d7f3d079540c8d42224d2ca0a66d66","pushVer":1140}
+-- @return {"userData":{"user":{"level":1,"loginTime":1404302188,"icon":2,"id":4,"status":0,"lastModify":1404198234,"maxEnergy":120,"loginIp":"61.148.75.238","regTime":1404198234,"passwd":"d0e16bcc1e6afadf7154183c9e78114c683e6563","exp":0,"regIp":"61.148.75.238","gold":9948510,"name":"zivn","lastEnergy":120},"heros":[{"level":1,"att":53,"id":12,"hp":243,"heroId":4,"dodge":5,"price":1220,"exp":0,"crit":20,"hit":95,"userId":4,"def":24},{"level":1,"att":143,"id":4,"hp":394,"heroId":1,"dodge":20,"price":1220,"exp":0,"crit":20,"hit":80,"userId":4,"def":25}],"equips":[{"level":9,"price":7050,"position":1,"id":1,"effects":[{"type":101,"value":140},{"type":100,"value":50}],"heroId":0,"userId":4,"equipId":1},{"level":1,"price":3050,"position":1,"id":2,"effects":[{"type":101,"value":100},{"type":100,"value":50}],"heroId":4,"userId":4,"equipId":1}]},"zoneOffset":0,"serverTime":1404302188,"token":"4e8e395aef51ca64fc34b5e1739a9157","pushVer":1555}
 function User:login()
     local name = request:getStrParam("name", true, true)
     local passwd = request:getStrParam("passwd", true)
