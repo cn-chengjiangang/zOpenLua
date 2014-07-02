@@ -12,7 +12,7 @@ local Hero = {}
 --- 英雄购买
 --
 -- @param string token 验证密钥
--- @param int heroId 购买英雄ID
+-- @param number heroId 购买英雄ID
 -- @return {"ok":true}
 function Hero:buy()
     local userInfo = self:getSessionInfo()
@@ -59,7 +59,7 @@ end
 --- 吞噬英雄升级
 --
 -- @param string token 验证密钥
--- @param int heroId 英雄ID
+-- @param number heroId 英雄ID
 -- @param string devourIds 吞噬英雄ID序列（逗号隔开）
 -- @return {"ok":true}
 function Hero:devour()

@@ -15,8 +15,8 @@ local User = {}
 --
 -- @param string name 用户名称
 -- @param string passwd 用户密码
--- @param int icon 头像ID
--- @param int heroId 英雄ID
+-- @param number icon 头像ID
+-- @param number heroId 英雄ID
 -- @return {"userData":{"user":<user>,"heros":[<userHero>],"equips":[<userEquip>]},"zoneOffset":0,"serverTime":1404277233,"token":"97d7f3d079540c8d42224d2ca0a66d66","pushVer":1140}
 function User:register()
     local name = request:getStrParam("name", true, true)
@@ -107,7 +107,7 @@ end
 --- 更换头像
 --
 -- @param string token 用户验证token
--- @param int icon 头像ID
+-- @param number icon 头像ID
 -- @return {"ok":true}
 function User:changeIcon()
     local userInfo = self:getSessionInfo()

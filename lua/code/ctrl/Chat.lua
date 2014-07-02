@@ -30,7 +30,7 @@ end
 --- 发送聊天消息
 --
 -- @param string token 验证密钥
--- @param int channel 频道ID
+-- @param number channel 频道ID
 -- @param string toName 接收用户名
 -- @param string content 聊天内容
 -- @return {"ok":true}

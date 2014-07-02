@@ -13,7 +13,7 @@ local Equip = {}
 --- 装备购买
 --
 -- @param string token 验证密钥
--- @param int equipId 购买装备ID
+-- @param number equipId 购买装备ID
 -- @return {"ok":true}
 function Equip:buy()
     local userInfo = self:getSessionInfo()
@@ -60,9 +60,9 @@ end
 --- 切换装备
 --
 -- @param string token 验证密钥
--- @param int heroId 英雄ID
--- @param int position 装备位置
--- @param int equipId 装备ID
+-- @param number heroId 英雄ID
+-- @param number position 装备位置
+-- @param number equipId 装备ID
 -- @return {"ok":true}
 function Equip:equip()
     local userInfo = self:getSessionInfo()
@@ -94,7 +94,7 @@ end
 --- 强化装备
 --
 -- @param string token 验证密钥
--- @param int equipId 装备ID
+-- @param number equipId 装备ID
 -- @return {"ok":true}
 function Equip:refine()
     local userInfo = self:getSessionInfo()
