@@ -91,17 +91,128 @@ zOpenLua 实现了上行消息 Gzip 压缩，详见 core.request 模块。
 ### 通讯消息加密
 zOpenLua 实现了通讯消息加密，详见 core.request 和 core.response 模块。
 
-上下行数据均可加密，加密采用较简单的对称加密算法。   
-在 config.system 中有独立的上下行加密开关。上行加密启用时，会先对上行数据解密后再进一步解析。下行加密启用时，会对下行数据加密后再返回。
+上下行数据均可加密，加密采用较简单的对称加密算法。在 config.system 中有独立的上下行加密开关。   
+上行加密启用时，会先对上行数据解密后再进一步解析。下行加密启用时，会对下行数据加密后再返回。
 
 ### 静态数据模块缓存
-zOpenLua 实现了通讯消息加密，详见 core.request 和 core.response 模块。
+zOpenLua 实现了静态数据模块缓存，详见 core.base.staticDao 模块。  
+
+在继承于 staticDao 的静态数据（类型数据）Dao 中，可定义缓存策略。   
+静态数据 Dao 模块加载时，会查询出数据库中的所有记录，并据根据定义的缓存策略组织成缓存数据，再以模块属性方式保存。   
+
+在 lua_code_cache 开启时，同一个 nginx worker 只具有一个 Lua VM。   
+模块首次加载后就被保存到了内存里，对同一个 worker 上的所有请求来说，已加载模块是共享的。     
+所有在首次加载静态数据 Dao 模块后，后续请求均从内存中获取之前处理的静态缓存数据。  
+
+静态数据缓存保存在内存中，如果需要更新数据。可使用以下两种方式：   
+1. `nginx -s reload`   
+2. ``kill -HUP `cat nginx/logs/nginx.pid` ``   
 
 ### 统一错误处理
+zOpenLua 实现了统一错误处理，详见 core.exception 模块。     
 
-### 数据修改自动记录下发
+可在程序任意处使用 exception:raise(errCode, errData) 抛出异常，中断当前代码的执行。   
+exception 是对 error 的封装，增加了错误代码和异常数据，方便 debug。   
+在 config.system 中的 DEBUG_MODE 启用时，exception 还将获取并记录错误栈信息。
 
+exception 所使用的所有 errCode 都需要在 config.error 里定义说明，方便国际化时进行翻译操作。   
+未在 config.error 定义的 errCode 会在下发给客户端时转化为 core.unknowErr。    
+errCode 一般使用 [module].[message] 格式，方便定位，同一错误应复用 errCode。  
+  
+exception 抛出时，应使用 errData 附加异常特征信息，方便查错。   
 
+### 用户数据修改监控和自动下发
+zOpenLua 实现了用户数据修改监控和自动下发，详见 core.changes 和 core.base.dyncDao 模块。 
+
+一般的页游手游，均会在首次进入时载入用户的所有数据，在后续的请求中通过返回的数据改变维护本地的用户数据缓存。changes 应此而生。   
+
+changes 会在获取会话信息时初始化，changes 的处理机制封装在 core.base.dyncDao 中。   
+启用数据的 changes 特性，需要在 config.changes 中定义监控规则，并在继承于 dyncDao 的动态数据（用户数据）Dao 中，定义 logChangeKey，无需额外的代码。   
+根据监控规则，每次对应的动态数据新增、更新、删除时，都会分析并记录数据更改，并在请求应答中返回给客户端。   
+
+config.changes 用于定义监控规则。   
+config.changes 的 key 应和对应 dao 中定义的 logChangeKey 相同，也是返回给客户端的 changes 数据中的 key。  
+每条规则均需定义 matchkey、matchAttr、primaryKey、single 四个属性。   
+当会话信息中的 matchkey 和数据的 matchAttr 属性的值相等时，数据改表会被记录。   
+primaryKey 是数据的主键，也是客户端数据缓存的识别标志。      
+single 标识每个用户是否只有一条此类数据（如 user），还是会有多条（如 userHero）。
+
+以下是购买英雄的返回：   
+
+    {
+        op: 201,
+        error: null,
+        data: {
+            ok: true
+        },
+        changes: {
+            updates: {
+                user: {
+                    gold: 9950010,
+                    id: 4
+                },
+                heros: [
+                    {
+                        level: 1,
+                        price: 1220,
+                        id: 21,
+                        hp: 344,
+                        heroId: 1,
+                        dodge: 20,
+                        crit: 20,
+                        exp: 0,
+                        userId: 4,
+                        hit: 80,
+                        def: 25,
+                        att: 43
+                    }
+                ]
+            }
+        }
+    }
+
+此返回中，标识了两个请求造成的数据修改。   
+1. id 为 4 的 user 的 gold 变成了 9950010。   
+2. id 为 21 的 hero 更新了所有属性。
+
+changes 的 updates 中不仅标识数据更新，也标识数据新增。   
+客户端发现本地没有存储 id 为 21 的 hero 时，认定为新增了一个 id 为 21 的 hero。
+
+以下是吞噬英雄的返回：   
+
+    {
+        op: 203,
+        error: null,
+        data: {
+            ok: true
+        },
+        changes: {
+            removes: {
+                heros: [
+                    17,
+                    19,
+                    18
+                ]
+            },
+            updates: {
+                user: {
+                    gold: 9949710,
+                    id: 4
+                },
+                heros: [
+                    {
+                        exp: 200,
+                        id: 4
+                    }
+                ]
+            }
+        }
+    }
+
+此返回中，标识了请求造成的两个数据修改和一个数据删除。   
+1. id 为 17、18、19 的 hero 被删除。      
+2. id 为 4 的 user 的 gold 变成了 9949710。   
+3. id 为 4 的 hero 的 exp 变成了 200。   
 
 系统要求
 ====
@@ -213,8 +324,7 @@ zOpenLua 实现了通讯消息加密，详见 core.request 和 core.response 模
 
 ## Crontab 配置
 项目的计划任务功能，需要在 Crontab 中进行相关配置才能实现。
-`echo "* * * * * root curl http://zlua.zivn.me/lua?act=Schedule.run >> /data/log/schedule-zlua.log" >> /etc/cron.d/zlua.cron`
-
+`echo "* * * * * root curl http://zlua.zivn.me/lua?act=Schedule.run >> /data/log/schedule-zlua.log" >> /etc/cron.d/zlua.cron`   
 
 
 模块说明
