@@ -1,0 +1,272 @@
+@charset "utf-8";
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    color: #333333;
+    font-size: 12px;
+    font-family: Verdana, "宋体", sans-serif;
+}
+
+form, ul, dl, ol {
+    margin: 0;
+    padding: 0;
+}
+
+ul, dl, ol {
+    list-style: none;
+}
+
+img {
+    border: none;
+}
+
+a {
+    text-decoration: none;
+    color: #333
+}
+
+a:hover {
+    color: #2c83ca
+}
+
+body {
+    overflow: hidden;
+    max-height: 100%;
+}
+
+.clear {
+    margin: 0;
+    padding: 0;
+    height: 0;
+    line-height: 0px;
+    font-size: 0;
+    clear: both;
+}
+
+.leftTree {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+    overflow: auto;
+    background: #ebf2fa;
+    border-right: #d4d4d4 solid 1px;
+}
+
+.leftTree .search {
+    margin: 10px;
+}
+
+.leftTree .search .inputText {
+    width: 160px;
+    height: 20px;
+    line-height: 20px;
+    color: #555;
+    vertical-align: middle;
+    border: 1px solid #ccc;
+}
+
+.leftTree .search .inputButton {
+    background: #0e5d9d;
+    height: 24px;
+    line-height: 22px;
+    color: #fff;
+    border: none;
+    vertical-align: middle;
+}
+
+.leftTree dl dt {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0 0 0 30px;
+    height: 36px;
+    line-height: 36px;
+    margin: 0;
+    background: url(docs.png) no-repeat 15px -45px #3992da;
+    color: #fff;
+    border-top: 1px solid #78baf0;
+    border-bottom: 1px solid #0e5d9d;
+    cursor: pointer;
+}
+
+.leftTree dl dt.hover {
+    background: url(docs.png) no-repeat 15px -45px #0e5d9d;
+}
+
+.leftTree dl dt.select {
+    background: url(docs.png) no-repeat 15px -45px #0e5d9d;
+}
+
+.leftTree dl dd {
+    font-size: 14px;
+    padding: 0 0 0 45px;
+    margin: 0;
+    height: 30px;
+    line-height: 30px;
+    background: url(docs.png) no-repeat 30px 12px;
+    cursor: pointer;
+}
+
+.leftTree dl dd.hover {
+    background: url(docs.png) no-repeat 30px -18px #d6e1f7;
+}
+
+.leftTree dl dd.select {
+    background: url(docs.png) no-repeat 30px -18px #d6e1f7;
+}
+
+.leftTree dl dd span {
+    color: #2c83ca;
+    font-weight: bold;
+}
+
+.rightCnt {
+    position: fixed;
+    top: 0;
+    left: 250px;
+    bottom: 0;
+    right: 0;
+    overflow: auto;
+    padding: 0 20px;
+}
+
+.rightCnt h1 {
+    font-size: 22px;
+    font-weight: bold;
+    line-height: 40px;
+    margin: 10px 0 0 0;
+    padding: 0;
+    font-family: Verdana, "微软雅黑", sans-serif;
+}
+
+.rightCnt h1 span {
+    color: #2c83ca;
+    margin-right: 16px;
+}
+
+.rightCnt .detail {
+    clear: both;
+    border: #d4d4d4 1px solid;
+    color: #555;
+    line-height: 22px;
+    padding: 6px 10px;
+    background: #eceff4;
+    margin: 5px 0 0 0;
+}
+
+.rightCnt .tabs {
+    height: 26px;
+    border-bottom: 2px solid #0e5d9d;
+    padding: 0 0 0 26px;
+    margin: 10px 0 0 0;
+    clear: both;
+}
+
+.rightCnt .tabs .select {
+    height: 26px;
+    line-height: 26px;
+    padding: 0 15px;
+    margin: 0 1px;
+    background: #0e5d9d;
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    float: left;
+}
+
+.rightCnt .tabs span {
+    height: 25px;
+    line-height: 25px;
+    padding: 0 15px;
+    margin: 0 1px;
+    background: #fff;
+    color: #0e5d9d;
+    float: left;
+    display: inline-block;
+    border: 1px solid #0e5d9d;
+    border-bottom: none;
+    cursor: pointer;
+}
+
+.rightCnt fieldset {
+    margin: 20px 0;
+    padding: 10px 15px;
+}
+
+.rightCnt fieldset legend {
+    font-size: 14px;
+    font-weight: bold;
+    background: #2c83ca;
+    color: #fff;
+    padding: 3px 8px;
+    margin-left: 10px
+}
+
+.rightCnt fieldset table {
+    border-collapse: collapse;
+}
+
+.rightCnt fieldset table th {
+    background: #d6e1f7;
+    height: 32px;
+    line-height: 30px;
+    border: 1px solid #d4d4d4;
+    padding: 0 6px 0 12px;
+    text-align: left;
+}
+
+.rightCnt fieldset table td {
+    background: #fff;
+    line-height: 26px;
+    border: 1px solid #d4d4d4;
+    padding: 0 6px 0 12px;
+}
+
+.rightCnt fieldset .return {
+    padding: 5px 10px;
+    background: #ebf2fa;
+    border: 1px solid #d4d4d4;
+    line-height: 23px;
+}
+
+.rightCnt fieldset .return strong {
+    color: red;
+}
+
+.rightCnt fieldset .params div {
+    clear: both;
+    height: 30px;
+}
+
+.rightCnt fieldset .params span {
+    line-height: 30px;
+    width: 150px;
+    margin-right: 5px;
+    font-weight: bold;
+    float: left;
+    text-align: right;
+}
+
+.rightCnt fieldset .params .inputText {
+    width: 200px;
+    border: 1px solid #ccc;
+    height: 20px;
+    line-height: 20px;
+    margin: 4px 0;
+    color: #555;
+}
+
+.rightCnt fieldset .params .inputButton {
+    background: #0e5d9d;
+    height: 24px;
+    line-height: 22px;
+    color: #fff;
+    border: none;
+    margin: 5px 0 0 155px;
+}
+
+

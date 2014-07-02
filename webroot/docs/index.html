@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>接口说明文档</title>
+    <link href="css/docs.css" rel="stylesheet" type="text/css"/>
+    <link href="css/jquery.jsonview.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="js/jquery-1.91.min.js"></script>
+    <script type="text/javascript" src="js/jquery.jsonview.js"></script>
+    <script type="text/javascript" src="js/docs.data.js"></script>
+    <script type="text/javascript" src="js/docs.core.js"></script>
+</head>
+<body>
+<div class="leftTree">
+    <div class="search">
+        <input id="search-value" type="text" class="inputText"/>
+        <input id="search-submit" type="button" class="inputButton" value="搜索"/>
+    </div>
+    <dl id="method-list">
+    </dl>
+</div>
+<div class="rightCnt">
+    <h1 id="detail-action"></h1>
+
+    <div id="detail-desc" class="detail"></div>
+    <div id="detail-tabs" class="tabs"><span>文档</span><span>测试</span></div>
+    <div id="detail-content">
+        <div>
+            <fieldset>
+                <legend>参数</legend>
+                <table id="detail-params" width="100%" border="0" align="left" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <th width="18%">名称</th>
+                        <th width="10%">类型</th>
+                        <th>说明</th>
+                    </tr>
+                </table>
+            </fieldset>
+            <fieldset>
+                <legend>错误</legend>
+                <table id="detail-errors" width="100%" border="0" align="left" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <th width="30%">代码</th>
+                        <th>说明</th>
+                    </tr>
+                </table>
+            </fieldset>
+            <fieldset>
+                <legend>返回</legend>
+                <div id="detail-result" class="return"></div>
+            </fieldset>
+        </div>
+        <div>
+            <fieldset>
+                <legend>参数</legend>
+                <div id="test-params" class="params">
+                    <input name="op" type="hidden" value=""/>
+                </div>
+                <div class="params"><input id="test-submit" name="input" type="button" class="inputButton" value="提交"/>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>返回</legend>
+                <div id="test-return" class="return"></div>
+            </fieldset>
+        </div>
+    </div>
+</div>
+</body>
+</html>
