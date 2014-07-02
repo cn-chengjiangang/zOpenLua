@@ -212,7 +212,68 @@ changes 的 updates 中不仅标识数据更新，也标识数据新增。
 此返回中，标识了请求造成的两个数据修改和一个数据删除。   
 1. id 为 17、18、19 的 hero 被删除。      
 2. id 为 4 的 user 的 gold 变成了 9949710。   
-3. id 为 4 的 hero 的 exp 变成了 200。   
+3. id 为 4 的 hero 的 exp 变成了 200。  
+
+### 消息推送
+zOpenLua 使用 Nginx Push Stream Module 实现了消息推送，详见 core.push 模块。     
+基于此消息推送机制，可以实现简单的聊天室，详见 code.ctrl.Chat 模块。     
+
+Push Stream 是一个 Nginx Comet 解决方案，支持 WebSocket 和 Long Polling 模式。  
+[Nginx Push Stream Module](https://github.com/wandenberg/nginx-push-stream-module) 的文档请自行参阅 Github。   
+
+客户端需要监听频道的 HTTP 链接，并在连接断开时重连。   
+服务端会定时（60s）向客户端发送心跳消息，如规定时间内未收到心跳，也应重新连接。   
+
+此链接将处于持续加载状态，服务端一旦推送信息，则客户端自链接收到新的数据，直至链接超时断开。   
+请自行阅读 Comet 的相关文章了解具体细节和原理。 
+
+频道名字目前采用 (SERVER_MARK)(channelPrefix)[extendId]。    
+例如，本项目目前有 3 个频道，世界、心跳、用户，假设用户 ID 是 1，SERVER_MARK 是 dev。   
+则应监听的链接为：`http://zlua.zivn.me/sub/devworld.b20/devping/devuser1.b20`   
+**.b20** 代表获取频道最后 20 条消息。  
+
+以下是监听频道的示例返回，共收到了 2 次 ping 消息和一次世界频道聊天消息：
+
+    {
+        op : 3,
+        data : {
+            zoneOffset: 0,
+            serverTime: 1404293281,
+            v: 1408,
+            channel: 2
+        },
+        error: null
+    }
+    {
+        op: 2,
+        data: {
+            zoneOffset: 0,
+            serverTime: 1404293290,
+            fromId: 4,
+            fromName: "zivn",
+            content: "test",
+            v: 1409,
+            channel: 1
+        },
+        error: null
+    }
+    {
+        op : 3,
+        data : {
+            zoneOffset: 0,
+            serverTime: 1404293341,
+            v: 1410,
+            channel: 2
+        },
+        error: null
+    } 
+
+由于频繁的重连，以及获取最后数条消息，可能会造成客户端接收到重复消息，导致消息重复处理。  
+为此，在消息中增加了版本号 v，每次服务端推送消息 v 都会递增，并在消息中下发给客户端。  
+客户端收到推送消息时，先比对本地 v 值和消息 v 值，如消息的 v 值较大，则处理，否则忽略。   
+如消息被处理，则处理完成后，将本地 v 值更新成消息 v 值。     
+用户登录时会接收到 pushVer 属性，既当前最新的推送版本，此时客户端重置本地版本。
+通过推送消息版本管理，可保证同一消息哪怕被多次接收，也只会处理一次。  
 
 系统要求
 ====
