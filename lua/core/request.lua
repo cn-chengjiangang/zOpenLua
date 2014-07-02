@@ -67,7 +67,7 @@ local function parseRequestData()
 
     if sysConf.COOKIE_ENABLE then
         if data.headers.cookie then
-            for key, value in header.cookie:gmatch("([%w_]+)=([^;]+)") do
+            for key, value in data.headers.cookie:gmatch("([%w_]+)=([^;]+)") do
                 data.cookie[key] = value
             end
         end
