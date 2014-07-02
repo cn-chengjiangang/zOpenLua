@@ -440,12 +440,41 @@ main.lua 定义了一些全局函数，并启动应用。
 局部函数，获取请求数据，将返回请求解析数据。如未曾解析，则会先解析并保存后再返回。
 
 ### request:getOp()
-获取请求操作码，将返回请求操作码。   
+获取请求操作码，将返回整形请求操作码。   
 op 是请求定义参数，在内部会被转化为 act，然后分发。   
 op 和 act 的对应关系，定义在 config.action 中。
 
 ### request:getAction()
-获取请求动作，将返回 [module, method]。
+获取请求动作，将返回表 `[module, method]`。
+
+### request:getCookie(key)
+获取Cookie中指定键的值，将返回对应 key 的字符串 Cookie 值。
+
+### request:getTime()
+获取请求发起时间，将返回请求发起的时间戳。
+
+### request:getIp()
+获取请求发起IP，将返回请求发起客户端的字符串 IP 地址。
+
+### request:isLocal()
+是否为本机请求，将返回请求是否由本机发起的布尔值。
+
+### request:getNumParam(name, abs, nonzero)
+获取请求参数中的数字参数，将返回请求参数中对应参数名的数字值。   
+abs 指定是否需要对数值进行绝对值操作。  
+nonzero 指定是否在数值为 0 或未指定时抛出异常。
+
+### request:getStrParam(name, nonempty, trim)
+获取请求参数中的字符串参数，将返回请求参数中对应参数名的字符串值。   
+trim 指定是否需要对字符串值进行去掉头尾空格操作。  
+nonempty 指定是否在字符串值为 "" 或未指定时抛出异常。
+
+### request:getNumsParam(name, abs, nonempty)
+获取请求参数中的数字序列参数，将返回请求参数中对应参数名的数字值序列。   
+上行参数需要是用同一非数字字符隔开的多个数字字符串，例如 `1,2,3` 或 `1;2;3`。   
+abs 指定是否需要对数字值序列中的数值进行绝对值操作。  
+nonempty 指定是否在数字值序列为空或未指定时抛出异常。
+
 
 
 
