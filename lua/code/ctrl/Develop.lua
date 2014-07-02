@@ -1,3 +1,4 @@
+local json = require("cjson")
 local util = loadMod("core.util")
 local exception = loadMod("core.exception")
 local response = loadMod("core.response")
