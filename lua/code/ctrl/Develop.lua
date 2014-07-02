@@ -5,6 +5,7 @@ local response = loadMod("core.response")
 local ctrlBase = loadMod("core.base.ctrl")
 local sysConf = loadMod("config.system")
 local actConf = loadMod("config.action")
+local errConf = loadMod("config.error")
 
 --- 开发控制器
 local Develop = {}
@@ -19,6 +20,7 @@ local function parseModule(module)
     local commentPattern = "%-%-%-%s*(%S+)%s*\n%-%-%s*(.-)%s*\nfunction%s+" .. moduleName .. ":([%w_]+)%s*%(%s*%)"
     local paramPattern = "@param%s*([%w_]+)%s*([%w_]+)%s*([^\n]*)"
     local resultPattern = "@return%s*([^\n]*)%s*"
+    local errorPattern = "@error%s*([%w_]+)%.([%w_]+)%s*"
 
     local path = sysConf.ROOT_PATH .. "/code/ctrl/" .. module .. ".lua"
     local content = util:readFile(path)
@@ -31,6 +33,7 @@ local function parseModule(module)
     local info = { desc = moduleDesc, methods = {} }
 
     for methodDesc, methodComment, methodName in content:gmatch(commentPattern) do
+        local errors = {}
         local params = {}
 
         for paramType, paramName, paramDesc in methodComment:gmatch(paramPattern) do
@@ -53,9 +56,26 @@ local function parseModule(module)
             params[#params + 1] = { type = paramType, name = paramName, desc = paramDesc }
         end
 
+        for eType, eCode in methodComment:gmatch(errorPattern) do
+            local errCode = eType .. "." .. eCode
+
+            if not errConf[eType] or not errConf[eType][eCode] then
+                exception:raise("core.parseFailed", {
+                    file = path,
+                    module = module,
+                    method = methodName,
+                    errCode = errCode
+                })
+            end
+
+            local errDesc = errConf[eType][eCode]
+            errors[#errors + 1] = { code = errCode, desc = errDesc }
+        end
+
         info.methods[methodName] = {
             method = methodName,
             params = params,
+            errors = errors,
             result = methodComment:match(resultPattern) or "",
             desc = methodDesc
         }

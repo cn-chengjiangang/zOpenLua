@@ -1,5 +1,5 @@
 var docs = {
-    format      : function (str, params)
+    format: function (str, params)
     {
         $.each(params, function (key, value)
         {
@@ -8,23 +8,23 @@ var docs = {
 
         return str;
     },
-    focus       : function ()
+    focus: function ()
     {
         $(this).addClass("hover");
     },
-    blur        : function ()
+    blur: function ()
     {
         $(this).removeClass("hover");
     },
-    select      : function ()
+    select: function ()
     {
         $(this).select();
     },
-    clickModule   : function ()
+    clickModule: function ()
     {
         $(this).parent().children("dd:first").click();
     },
-    clickMethod : function ()
+    clickMethod: function ()
     {
         var data = $(this).data();
 
@@ -59,7 +59,7 @@ var docs = {
         }
         catch (e)
         {
-            $("#detail-result").html("<strong>Error: invalid json result!</strong>"+data.result);
+            $("#detail-result").html("<strong>Error: invalid json result!</strong>" + data.result);
         }
 
         $("#test-params div").remove();
@@ -74,13 +74,13 @@ var docs = {
         $("#test-params input[name='op']").val(data.op);
         $("#test-return").html("<strong>please enter params and submit!</strong>");
     },
-    clickTab    : function ()
+    clickTab: function ()
     {
         var index = $("#detail-tabs span").index($(this));
         $(this).addClass("select").siblings().removeClass("select");
         $("#detail-content").children().eq(index).show().siblings().hide();
     },
-    doTest      : function ()
+    doTest: function ()
     {
         var params = {};
 
@@ -91,11 +91,11 @@ var docs = {
 
         $("#test-return").html("<strong>loading...</strong>");
         $.ajax({
-            url      : "/",
-            type     : "GET",
-            data     : params,
-            timeout  : 5000,
-            success  : function (data)
+            url: "/",
+            type: "GET",
+            data: params,
+            timeout: 5000,
+            success: function (data)
             {
                 try
                 {
@@ -106,13 +106,13 @@ var docs = {
                     $("#test-return").html("<strong>Error: invalid json result!</strong>");
                 }
             },
-            error    : function ()
+            error: function ()
             {
                 $("#test-return").html("<strong>Error: server return invalid content!</strong>");
             }
         });
     },
-    search      : function ()
+    search: function ()
     {
         var action = $.trim($("#search-value").val());
 
@@ -131,7 +131,7 @@ var docs = {
             }
         }
     },
-    init        : function ()
+    init: function ()
     {
         var ops = Object.keys(docsData.ops).sort(function (op1, op2)
         {
@@ -148,21 +148,21 @@ var docs = {
 
             if ($("#method-" + module).length == 0)
             {
-                $("#method-list").append($("<div>", {id : "method-" + module}).append($("<dt>", {
-                    html      : moduleInfo.desc,
-                    mouseover : docs.focus,
-                    mouseout  : docs.blur,
-                    click     : docs.clickModule
+                $("#method-list").append($("<div>", {id: "method-" + module}).append($("<dt>", {
+                    html: moduleInfo.desc,
+                    mouseover: docs.focus,
+                    mouseout: docs.blur,
+                    click: docs.clickModule
                 })));
             }
 
             $("#method-" + module).append($("<dd>", {
-                id        : ["method", module, method].join("-"),
-                html      : "<span>[" + op + "]</span> " + methodInfo.desc,
-                data      : methodInfo,
-                mouseover : docs.focus,
-                mouseout  : docs.blur,
-                click     : docs.clickMethod
+                id: ["method", module, method].join("-"),
+                html: "<span>[" + op + "]</span> " + methodInfo.desc,
+                data: methodInfo,
+                mouseover: docs.focus,
+                mouseout: docs.blur,
+                click: docs.clickMethod
             }).hide());
         });
 

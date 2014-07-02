@@ -18,6 +18,7 @@ return {
         serverClose = "服务器维护",
         connectFailed = "连接服务器失败",
         queryFailed = "执行查询失败",
+        parseFailed = "解析失败",
         needLogin = "找不到会话信息，需要重登陆",
     },
 
