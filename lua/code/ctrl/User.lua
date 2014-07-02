@@ -26,7 +26,7 @@ function User:register()
 
     local nameWidth = util.string:width(name)
 
-    if nameWidth < 2 or nameWidth > 12 then
+    if nameWidth < 4 or nameWidth > 12 then
         exception:raise("user.errNameLen", { name = name })
     end
 
