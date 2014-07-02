@@ -29,6 +29,9 @@ return {
     --- 会话密钥名字
     SESSION_TOKEN_NAME = "token",
 
+    --- 请求重试随机数参数名
+    RETRY_RANDOM_PARAM = "r",
+
     --- 操作锁超时(秒)
     LOCKER_TIMEOUT = 3,
 

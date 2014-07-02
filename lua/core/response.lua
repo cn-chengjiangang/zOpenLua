@@ -44,16 +44,20 @@ function Response:output(message, noCache, noEncode)
         ngx.header.execTime = ngx.now() - request:getTime()
     end
 
+    if sysConf.ENCRYPT_REPLY then
+        content = util:encrypt(body, sysConf.ENCRYPT_KEY)
+    end
+
     ngx.say(content)
     ngx.eof()
 
     if not noCache then
-        local op = request:getOp()
+        local action = table.concat(request:getAction(), ".")
         local token = request:getStrParam(sysConf.SESSION_TOKEN_NAME)
-        local r = request:getStrParam("r")
+        local r = request:getStrParam(sysConf.RETRY_RANDOM_PARAM)
 
-        if op > 0 and token ~= "" and r ~= "" then
-            self.cacheHelper:set(LAST_RES_PREFIX .. token, { op = op, r = r, content = content }, 3600)
+        if token ~= "" and r ~= "" then
+            self.cacheHelper:set(LAST_RES_PREFIX .. token, { action = action, r = r, content = content }, 3600)
         end
     end
 end
@@ -110,14 +114,14 @@ end
 --
 -- @return boolean
 function Response:checkRetry()
-    local op = request:getOp()
+    local action = table.concat(request:getAction(), ".")
     local token = request:getStrParam(sysConf.SESSION_TOKEN_NAME)
-    local r = request:getStrParam("r")
+    local r = request:getStrParam(sysConf.RETRY_RANDOM_PARAM)
 
-    if op > 0 and token ~= "" and r ~= "" then
+    if token ~= "" and r ~= "" then
         local lastRes = self.cacheHelper:get(LAST_RES_PREFIX .. token)
 
-        if lastRes and lastRes.op == op and lastRes.r == r then
+        if lastRes and lastRes.action == action and lastRes.r == r then
             self:output(lastRes.content, true, true)
             return true
         end
