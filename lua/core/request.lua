@@ -37,8 +37,9 @@ local function parseRequestData()
     local data = {
         op = 0,
         action = {},
+        headers = ngx.req.get_headers(),
         params = {},
-        cookie = {},
+        cookies = {},
         time = ngx.req.start_time(),
         ip = ngx.var.remote_addr
     }
@@ -47,16 +48,12 @@ local function parseRequestData()
         parseArgs(ngx.req.get_uri_args(), data)
     end
 
-    local headers
-
     if sysConf.POST_ENABLE then
         ngx.req.read_body()
         local body = ngx.req.get_body_data()
 
         if body then
-            headers = headers or ngx.req.get_headers()
-
-            if headers["Content-Encoding"] == "gzip" then
+            if data.headers["Content-Encoding"] == "gzip" then
                 body = zlib.inflate()(body)
             end
 
@@ -69,9 +66,7 @@ local function parseRequestData()
     end
 
     if sysConf.COOKIE_ENABLE then
-        local header = headers or ngx.req.get_headers()
-
-        if header.cookie then
+        if data.header.cookie then
             for key, value in header.cookie:gmatch("([%w_]+)=([^;]+)") do
                 data.cookie[key] = value
             end

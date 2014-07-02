@@ -23,7 +23,11 @@ zOpenLua 目前以应用于线上的手机游戏项目《小小兽人》，负�
 
 ### 用户登录
 * http://zlua.zivn.me/lua?op=102&name=str{4,12}&passwd=str{6,12}
-* http://zlua.zivn.me/lua?act=User.login&name=str{4,12}&passwd=str{6,12}
+* http://zlua.zivn.me/lua?act=User.login&name=str{4,12}&passwd=str{6,12}   
+
+### 发送聊天消息
+* http://zlua.zivn.me/lua?op=1&channel=int&content=str&token=str{32}
+* http://zlua.zivn.me/lua?act=Chat.say&channel=int&content=str&token=str{32}
 
 ### 修改头像
 * http://zlua.zivn.me/lua?op=103&icon=int[1,10]&token=str{32}    
@@ -272,7 +276,7 @@ Push Stream 是一个 Nginx Comet 解决方案，支持 WebSocket 和 Long Polli
 为此，在消息中增加了版本号 v，每次服务端推送消息 v 都会递增，并在消息中下发给客户端。  
 客户端收到推送消息时，先比对本地 v 值和消息 v 值，如消息的 v 值较大，则处理，否则忽略。   
 如消息被处理，则处理完成后，将本地 v 值更新成消息 v 值。     
-用户登录时会接收到 pushVer 属性，既当前最新的推送版本，此时客户端重置本地版本。
+用户登录时会接收到 pushVer 属性，既当前最新的推送版本，此时客户端重置本地版本。  
 通过推送消息版本管理，可保证同一消息哪怕被多次接收，也只会处理一次。  
 
 系统要求
@@ -388,24 +392,23 @@ Push Stream 是一个 Nginx Comet 解决方案，支持 WebSocket 和 Long Polli
 `echo "* * * * * root curl http://zlua.zivn.me/lua?act=Schedule.run >> /data/log/schedule-zlua.log" >> /etc/cron.d/zlua.cron`   
 
 
-模块说明
+核心模块说明
 ====
 ## main.lua
-整个项目的入口文件，由此进入 Lua 代码控制，以实现复杂的业务逻辑功能。
+整个项目的入口文件，由此进入 Lua 代码控制，以实现复杂的业务逻辑功能。   
 main.lua 定义了一些全局函数，并启动应用。
 
-### _G.loadMod
-用于替代 require 函数，配合 lua_package_path 和 SERVER_DIR 实现文件的无障碍加载，并可隔离每个 server 加载的模块，实现同机多服。
+### _G.loadMod(namespace)
+用于替代 require 函数，配合 lua_package_path 和 SERVER_DIR 实现无障碍加载文件，并隔离每个 server 加载的模块，实现同机多应用。   
 
-例如，在项目中加载 core\util.lua：
-`local util = loadMod("core.util")`
+例如，在项目中加载 core\util.lua，可用 `local util = loadMod("core.util")`。   
 实际 require 参数为 **zlua_zivn_me.lua.core.util**，对应路径为 **zlua_zivn_me\lua\core\util.lua**。
 
-### _G.saveMod
+### _G.saveMod(namespace, model)
 用于保存数据为已加载模块，原理是构造模块名，并将数据存入 **package.loaded** 表。
 
 ## core.app
-对应 core\app.lua 文件，主应用模块，主要作用是应用初始化、请求路由和处理、应用清理。
+对应 core\app.lua 文件，主应用模块，主要作用是应用初始化、请求路由和处理、应用清理。   
 外部只需调用 **app:run()** 即可，其他方法均为内部使用。
 
 ### app:init()
@@ -415,18 +418,36 @@ main.lua 定义了一些全局函数，并启动应用。
 应用清理。用户会话锁解锁（见 core.session 模块）、关闭数据驱动（见 core.driver.* 模块）。
 
 ### app:route()
-请求路由分发。请求重试机制处理（见 core.response 模块）、请求路由、请求执行。
+请求路由分发。请求重试机制处理（见 core.response 模块）、请求路由、请求执行。   
 
-请求执行时，会先执行对应控制器的 **filter** 方法，用于控制器通用的前置条件过滤判断。
-再执行请求对应的控制器方法，以处理业务逻辑。
-最后执行对应控制器的 **cleaner** 方法，用于控制器通用的结束清理。
-详见 core.base.ctrl 模块中的对应说明。
+当请求被判定为非重试请求时，app 模块会将请求分发给对应的控制器。    
+请求执行时，会先执行对应控制器的 **filter** 方法，用于控制器通用的前置条件过滤判断。       
+再执行请求对应的控制器方法，以处理业务逻辑。      
+最后执行对应控制器的 **cleaner** 方法，用于控制器通用的结束清理。      
+详见 core.base.ctrl 模块中的对应说明。       
 
 ## core.response 
 对应 core\response.lua 文件，主要用于请求数据处理、分析请求参数。
 
 ### parseArgs(args, data)
-局部函数，用于格式化请求数据，其中包含了对请求路由
+局部函数，用于格式化请求数据，其中包含了对请求中动作参数（act 和 op）的处理。
+
+### parseRequestData()
+局部函数，用于分析请求数据，并存储到 ngx.ctx[Request]。   
+包括对 GET 数据的解析、对 POST 数据的解析（包括解压、解密）、对 Cookie 数据的解析、从 op 得到 act 等，具体细节请阅读代码。   
+
+### getRequestData()
+局部函数，获取请求数据，将返回请求解析数据。如未曾解析，则会先解析并保存后再返回。
+
+### request:getOp()
+获取请求操作码，将返回请求操作码。   
+op 是请求定义参数，在内部会被转化为 act，然后分发。   
+op 和 act 的对应关系，定义在 config.action 中。
+
+### request:getAction()
+获取请求动作，将返回 [module, method]。
+
+
 
 
 
