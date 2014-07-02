@@ -398,26 +398,26 @@ Push Stream 是一个 Nginx Comet 解决方案，支持 WebSocket 和 Long Polli
 整个项目的入口文件，由此进入 Lua 代码控制，以实现复杂的业务逻辑功能。   
 main.lua 定义了一些全局函数，并启动应用。
 
-### _G.loadMod(namespace)
+#### _G.loadMod(namespace)
 用于替代 require 函数，配合 lua_package_path 和 SERVER_DIR 实现无障碍加载文件，并隔离每个 server 加载的模块，实现同机多应用。   
 
 例如，在项目中加载 core\util.lua，可用 `local util = loadMod("core.util")`。   
 实际 require 参数为 **zlua_zivn_me.lua.core.util**，对应路径为 **zlua_zivn_me\lua\core\util.lua**。
 
-### _G.saveMod(namespace, model)
+#### _G.saveMod(namespace, model)
 用于保存数据为已加载模块，原理是构造模块名，并将数据存入 **package.loaded** 表。
 
 ## core.app
 对应 core\app.lua 文件，主应用模块，主要作用是应用初始化、请求路由和处理、应用清理。   
 外部只需调用 **app:run()** 即可，其他方法均为内部使用。
 
-### app:init()
+#### app:init()
 应用初始化。定义项目跟路径，初始化随机数种子（用于解决随机数不平均问题）。
 
-### app:clean()
+#### app:clean()
 应用清理。用户会话锁解锁（见 core.session 模块）、关闭数据驱动（见 core.driver.* 模块）。
 
-### app:route()
+#### app:route()
 请求路由分发。请求重试机制处理（见 core.response 模块）、请求路由、请求执行。   
 
 当请求被判定为非重试请求时，app 模块会将请求分发给对应的控制器。    
@@ -429,47 +429,47 @@ main.lua 定义了一些全局函数，并启动应用。
 ## core.response 
 对应 core\response.lua 文件，主要用于请求数据处理、分析请求参数。
 
-### parseArgs(args, data)
+#### parseArgs(args, data)
 局部函数，用于格式化请求数据，其中包含了对请求中动作参数（act 和 op）的处理。
 
-### parseRequestData()
+#### parseRequestData()
 局部函数，用于分析请求数据，并存储到 ngx.ctx[Request]。   
 包括对 GET 数据的解析、对 POST 数据的解析（包括解压、解密）、对 Cookie 数据的解析、从 op 得到 act 等，具体细节请阅读代码。   
 
-### getRequestData()
+#### getRequestData()
 局部函数，获取请求数据，将返回请求解析数据。如未曾解析，则会先解析并保存后再返回。
 
-### request:getOp()
+#### request:getOp()
 获取请求操作码，将返回整形请求操作码。   
 op 是请求定义参数，在内部会被转化为 act，然后分发。   
 op 和 act 的对应关系，定义在 config.action 中。
 
-### request:getAction()
+#### request:getAction()
 获取请求动作，将返回表 `[module, method]`。
 
-### request:getCookie(key)
+#### request:getCookie(key)
 获取Cookie中指定键的值，将返回对应 key 的字符串 Cookie 值。
 
-### request:getTime()
+#### request:getTime()
 获取请求发起时间，将返回请求发起的时间戳。
 
-### request:getIp()
+#### request:getIp()
 获取请求发起IP，将返回请求发起客户端的字符串 IP 地址。
 
-### request:isLocal()
+#### request:isLocal()
 是否为本机请求，将返回请求是否由本机发起的布尔值。
 
-### request:getNumParam(name, abs, nonzero)
+#### request:getNumParam(name, abs, nonzero)
 获取请求参数中的数字参数，将返回请求参数中对应参数名的数字值。   
 abs 指定是否需要对数值进行绝对值操作。  
 nonzero 指定是否在数值为 0 或未指定时抛出异常。
 
-### request:getStrParam(name, nonempty, trim)
+#### request:getStrParam(name, nonempty, trim)
 获取请求参数中的字符串参数，将返回请求参数中对应参数名的字符串值。   
 trim 指定是否需要对字符串值进行去掉头尾空格操作。  
 nonempty 指定是否在字符串值为 "" 或未指定时抛出异常。
 
-### request:getNumsParam(name, abs, nonempty)
+#### request:getNumsParam(name, abs, nonempty)
 获取请求参数中的数字序列参数，将返回请求参数中对应参数名的数字值序列。   
 上行参数需要是用同一非数字字符隔开的多个数字字符串，例如 `1,2,3` 或 `1;2;3`。   
 abs 指定是否需要对数字值序列中的数值进行绝对值操作。  
