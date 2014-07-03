@@ -7,6 +7,14 @@ local sysConf = loadMod("config.system")
 local actConf = loadMod("config.action")
 local errConf = loadMod("config.error")
 
+
+local MODULE_PATTERN = "%-%-%-%s*(%S+)%s*\nlocal%s*" .. moduleName .. "%s*="
+local COMMENT_PATTERN = "%-%-%-%s*(%S+)%s*\n%-%-%s*(.-)%s*\nfunction%s+" .. moduleName .. ":([%w_]+)%s*%(%s*%)"
+local PARAM_PATTERN = "@param%s*([%w_]+)%s*([%w_]+)%s*([^\n]*)"
+local RESULT_PATTERN = "@return%s*([^\n]*)%s*"
+local ERROR_PATTERN = "@error%s*([^\n]*)%s*"
+local ECODE_PATTERN = "([%w_]+%.[%w_]+)"
+
 --- 开发控制器
 local Develop = {}
 
@@ -16,15 +24,10 @@ local Develop = {}
 -- @return table 模块信息
 local function parseModule(module)
     local moduleName = util.string:capital(module)
-    local modulePattern = "%-%-%-%s*(%S+)%s*\nlocal%s*" .. moduleName .. "%s*="
-    local commentPattern = "%-%-%-%s*(%S+)%s*\n%-%-%s*(.-)%s*\nfunction%s+" .. moduleName .. ":([%w_]+)%s*%(%s*%)"
-    local paramPattern = "@param%s*([%w_]+)%s*([%w_]+)%s*([^\n]*)"
-    local resultPattern = "@return%s*([^\n]*)%s*"
-    local errorPattern = "@error%s*([%w_]+)%.([%w_]+)%s*"
 
     local path = sysConf.ROOT_PATH .. "/code/ctrl/" .. module .. ".lua"
     local content = util:readFile(path)
-    local moduleDesc = content:match(modulePattern)
+    local moduleDesc = content:match(MODULE_PATTERN)
 
     if not moduleDesc then
         exception:raise("core.parseFailed", { file = path, module = module })
@@ -32,11 +35,11 @@ local function parseModule(module)
 
     local info = { desc = moduleDesc, methods = {} }
 
-    for methodDesc, methodComment, methodName in content:gmatch(commentPattern) do
+    for methodDesc, methodComment, methodName in content:gmatch(COMMENT_PATTERN) do
         local errors = {}
         local params = {}
 
-        for paramType, paramName, paramDesc in methodComment:gmatch(paramPattern) do
+        for paramType, paramName, paramDesc in methodComment:gmatch(PARAM_PATTERN) do
             paramType = paramType:lower()
 
             if paramType == "number" then
@@ -56,27 +59,17 @@ local function parseModule(module)
             params[#params + 1] = { type = paramType, name = paramName, desc = paramDesc }
         end
 
-        for eType, eCode in methodComment:gmatch(errorPattern) do
-            local errCode = eType .. "." .. eCode
-
-            if not errConf[eType] or not errConf[eType][eCode] then
-                exception:raise("core.parseFailed", {
-                    file = path,
-                    module = module,
-                    method = methodName,
-                    errCode = errCode
-                })
+        for errCodes in methodComment:gmatch(ERROR_PATTERN) do
+            for errCode in errCodes:gmatch(ECODE_PATTERN) do
+                errors[#errors + 1] = errCode
             end
-
-            local errDesc = errConf[eType][eCode]
-            errors[#errors + 1] = { code = errCode, desc = errDesc }
         end
 
         info.methods[methodName] = {
             method = methodName,
             params = params,
             errors = errors,
-            result = methodComment:match(resultPattern) or "",
+            result = methodComment:match(RESULT_PATTERN) or "",
             desc = methodDesc
         }
     end
@@ -113,7 +106,13 @@ end
 --
 -- @return {"ok":true}
 function Develop:makeDocs()
-    local ops, modules = {}, {}
+    local ops, errors, modules = {}, {}, {}
+
+    for eType, eCodes in pairs(errConf) do
+        for eCode, eMsg in pairs(eCodes) do
+            errors[eType .. "." .. eCode] = eMsg
+        end
+    end
 
     for op, act in pairs(actConf) do
         local action = table.concat(act, ".")
@@ -150,6 +149,7 @@ function Develop:makeDocs()
         version = "1.0",
         domain = ngx.var.server_name,
         ops = ops,
+        errors = errors,
         modules = modules
     }
 
