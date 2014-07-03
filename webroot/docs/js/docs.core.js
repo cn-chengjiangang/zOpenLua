@@ -48,7 +48,7 @@ var docs = {
         $("#detail-errors tr:gt(0)").remove();
         $.each(data.errors, function (index, errCode)
         {
-            var errMsg = docsData.errors[error];
+            var errMsg = docsData.errors[errCode];
 
             if (!errMsg)
             {
