@@ -14,6 +14,7 @@ local Equip = {}
 --
 -- @param string token 验证密钥
 -- @param number equipId 购买装备ID
+-- @error user.needInit user.lessGold equip.typeError
 -- @return {"ok":true}
 function Equip:buy()
     local userInfo = self:getSessionInfo()
@@ -32,6 +33,7 @@ end
 --
 -- @param string token 验证密钥
 -- @param string sellIds 卖出装备ID序列（逗号隔开）
+-- @error user.needInit equip.wasEquiped
 -- @return {"ok":true}
 function Equip:sell()
     local userInfo = self:getSessionInfo()
@@ -63,6 +65,7 @@ end
 -- @param number heroId 英雄ID
 -- @param number position 装备位置
 -- @param number equipId 装备ID
+-- @error user.needInit equip.wasEquiped
 -- @return {"ok":true}
 function Equip:equip()
     local userInfo = self:getSessionInfo()
@@ -95,6 +98,7 @@ end
 --
 -- @param string token 验证密钥
 -- @param number equipId 装备ID
+-- @error user.needInit equip.maxLevel equip.typeError
 -- @return {"ok":true}
 function Equip:refine()
     local userInfo = self:getSessionInfo()

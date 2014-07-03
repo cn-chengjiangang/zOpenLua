@@ -13,6 +13,7 @@ local Hero = {}
 --
 -- @param string token 验证密钥
 -- @param number heroId 购买英雄ID
+-- @error user.needInit user.lessGold hero.typeError
 -- @return {"ok":true}
 function Hero:buy()
     local userInfo = self:getSessionInfo()
@@ -31,6 +32,7 @@ end
 --
 -- @param string token 验证密钥
 -- @param string sellIds 卖出英雄ID序列（逗号隔开）
+-- @error user.needInit
 -- @return {"ok":true}
 function Hero:sell()
     local userInfo = self:getSessionInfo()
@@ -61,6 +63,7 @@ end
 -- @param string token 验证密钥
 -- @param number heroId 英雄ID
 -- @param string devourIds 吞噬英雄ID序列（逗号隔开）
+-- @error user.needInit hero.wrongNumHero
 -- @return {"ok":true}
 function Hero:devour()
     local userInfo = self:getSessionInfo()

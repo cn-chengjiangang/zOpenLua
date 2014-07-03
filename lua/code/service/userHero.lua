@@ -177,7 +177,7 @@ function UserHero:buy(user, heroId)
     local hero = heroService:getOne(heroId)
 
     if not hero then
-        exception:raise("core.forbidden", { heroId = heroId, userId = user.id })
+        exception:raise("hero.typeError", { heroId = heroId })
     end
 
     util:getService("user"):spentGold(user, hero.price, true)

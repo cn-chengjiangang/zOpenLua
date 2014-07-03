@@ -33,6 +33,8 @@ end
 -- @param number channel 频道ID
 -- @param string toName 接收用户名
 -- @param string content 聊天内容
+-- @error user.needInit
+-- @error chat.tooFast chat.banChat chat.sendToUnknow
 -- @return {"ok":true}
 function Chat:say()
     local userInfo = self:getSessionInfo()

@@ -51,6 +51,7 @@ return {
     },
     --- 英雄系统错误
     hero = {
+        typeError = "英雄类型错误",
         wrongNumHero = "英雄数量错误",
         maxLevel = "已达到等级上限",
     },

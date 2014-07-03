@@ -46,10 +46,18 @@ var docs = {
         });
 
         $("#detail-errors tr:gt(0)").remove();
-        $.each(data.errors, function (index, error)
+        $.each(data.errors, function (index, errCode)
         {
+            var errMsg = docsData.errors[error];
+
+            if (!errMsg)
+            {
+                errCode = "unknowErr";
+                errMsg = "未知错误";
+            }
+
             $("#detail-errors").append(docs.format(
-                "<tr><td><<0>></td><td><<1>></td></tr>", [error.code, error.desc]
+                "<tr><td><<0>></td><td><<1>></td></tr>", [errCode, errMsg]
             ));
         });
 
