@@ -377,7 +377,7 @@ zOpenLua 使用 **Nginx Push Stream Module** 实现了消息推送，详见 **co
     }   
 
 ## Crontab 配置
-项目的计划任务功能，需要在 Crontab 中进行相关配置才能实现。
+项目的计划任务功能，需要在 Crontab 中进行相关配置才能实现。   
 `echo "* * * * * root curl http://zlua.zivn.me/lua?act=Schedule.run >> /data/log/schedule-zlua.log" >> /etc/cron.d/zlua.cron`   
 
 
