@@ -22999,7 +22999,7 @@ for _, word in ipairs(words) do
         node = node[byte]
     end
 
-    node[0] = true
+    node[-1] = true
 end
 
 return tree

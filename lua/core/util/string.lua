@@ -122,7 +122,7 @@ function String:checkFilter(str)
                 break
             end
 
-            if node[0] then
+            if node[-1] then
                 invalid = true
                 break
             end
