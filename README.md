@@ -383,12 +383,12 @@ _如果是 64 位 **CentOS** 系统，可用 **soft/soft.sh** 安装上述软件
 
 核心模块说明
 ====
-## main
+# main
 > _对应 **main.lua** 文件。_   
  
 **main** 是整个项目的入口文件，定义了一些全局函数，并从此处启动应用。   
 
-#### _G.loadMod(namespace)
+### _G.loadMod(namespace)
 **loadMod** 用于替代 **require** 函数，配合 **lua_package_path** 和 **SERVER_DIR** 实现无障碍加载文件。   
 **loadMod** 实现了各个 **nginx server** 加载模块的隔离，可在同一 **nginx** 上定义多个不同版本的 **server**。      
 
@@ -397,22 +397,22 @@ _如果是 64 位 **CentOS** 系统，可用 **soft/soft.sh** 安装上述软件
 
 注意，**loadMod** 仅限于加载项目内模块，对与系统级的模块，如 **cjson** 等，还是应该用 **require** 加载。   
 
-#### _G.saveMod(namespace, model)
+### _G.saveMod(namespace, model)
 用于保存数据为已加载模块，原理是构造模块名，并将数据存入 **package.loaded** 表。     
 
-## core.app
+# core.app
 > _对应 **core\app.lua** 文件。_   
 
 主应用模块，主要作用是应用初始化、请求路由和处理、应用清理。   
 外部仅限调用 **app:run()**，其他方法均为内部使用。
 
-#### app:init()
+### app:init()
 应用初始化。定义项目跟路径，初始化随机数种子（用于解决随机数不平均问题）。
 
-#### app:clean()
+### app:clean()
 应用清理。用户会话锁解锁（见 **core.session** 模块）、关闭数据驱动（见 __core.driver.*__ 模块）。
 
-#### app:route()
+### app:route()
 请求路由分发。请求重试机制处理（见 **core.response** 模块）、请求路由分发、请求执行。   
 
 > 当请求被判定为非重试请求时，会将请求分发给对应的控制器。    
@@ -421,7 +421,7 @@ _如果是 64 位 **CentOS** 系统，可用 **soft/soft.sh** 安装上述软件
 > 最后执行对应控制器的 **cleaner** 方法，用于控制器通用的结束清理。      
 > 详见 **core.base.ctrl** 模块中的对应说明。       
 
-## core.request
+# core.request
 > _对应 **core\request.lua** 文件。_
    
 请求处理模块，主要作用是请求数据分析、处理和获取请求参数。
@@ -446,45 +446,45 @@ _如果是 64 位 **CentOS** 系统，可用 **soft/soft.sh** 安装上述软件
   如果请求没有发送 **r** 值，将不会进行请求重试处理。     
   **r** 的参数名可以自定义，如需修改请自行调整 **config.system** 里的 **RETRY_RANDOM_PARAM**。 
 
-#### parseArgs(args, data)
+### parseArgs(args, data)
 局部函数，用于格式化请求数据，其中包含了对请求动作参数的处理。
 
-#### parseRequestData()
+### parseRequestData()
 局部函数，用于分析请求数据，并存储到 **ngx.ctx**。   
 包括对 **GET** 和 **POST** 数据的解析（包括解压、解密）、对 **Cookie** 数据的解析、**op** 转换为 **act** 等，具体细节请阅读代码。   
 
-#### getRequestData()
+### getRequestData()
 局部函数，获取请求数据，返回解析后的请求数据。如请求未被解析，则会先解析并保存后再返回。
 
-#### request:getOp()
+### request:getOp()
 获取请求操作码，返回整形的请求操作码。   
 
-#### request:getAction()
+### request:getAction()
 获取请求动作，返回表 `{ module, method }`。
 
-#### request:getCookie(key)
+### request:getCookie(key)
 获取Cookie中指定键名的值，返回 Cookie 中对应键名的字符串值。
 
-#### request:getTime()
+### request:getTime()
 获取请求发起时间，返回请求发起的时间戳。
 
-#### request:getIp()
+### request:getIp()
 获取请求发起IP，返回请求发起客户端的字符串 IP 地址。
 
-#### request:isLocal()
+### request:isLocal()
 是否为本机请求，返回请求是否由本机发起的布尔值。
 
-#### request:getNumParam(name, abs, nonzero)
+### request:getNumParam(name, abs, nonzero)
 获取请求参数中的数字参数，将返回请求参数中对应参数名的数字值。   
 abs 指定是否需要对数值进行绝对值操作。  
 nonzero 指定是否在数值为 0 或未指定时抛出异常。
 
-#### request:getStrParam(name, nonempty, trim)
+### request:getStrParam(name, nonempty, trim)
 获取请求参数中的字符串参数，将返回请求参数中对应参数名的字符串值。   
 trim 指定是否需要对字符串值进行去掉头尾空格操作。  
 nonempty 指定是否在字符串值为 "" 或未指定时抛出异常。
 
-#### request:getNumsParam(name, abs, nonempty)
+### request:getNumsParam(name, abs, nonempty)
 获取请求参数中的数字序列参数，将返回请求参数中对应参数名的数字值序列。   
 上行参数需要是用同一非数字字符隔开的多个数字组成的字符串，例如 `1,2,3` 或 `1;2;3`。   
 abs 指定是否需要对数字值序列中的数值进行绝对值操作。  
