@@ -7,12 +7,26 @@ local sysConf = loadMod("config.system")
 local actConf = loadMod("config.action")
 local errConf = loadMod("config.error")
 
+--- 模块匹配规则
+local function MODULE_PATTERN(moduleName)
+    return "%-%-%-%s*(%S+)%s*\nlocal%s*" .. moduleName .. "%s*="
+end
 
-local MODULE_PATTERN = "%-%-%-%s*(%S+)%s*\nlocal%s*" .. moduleName .. "%s*="
-local COMMENT_PATTERN = "%-%-%-%s*(%S+)%s*\n%-%-%s*(.-)%s*\nfunction%s+" .. moduleName .. ":([%w_]+)%s*%(%s*%)"
+--- 方法注释匹配规则
+local function COMMENT_PATTERN(moduleName)
+    return "%-%-%-%s*(%S+)%s*\n%-%-%s*(.-)%s*\nfunction%s+" .. moduleName .. ":([%w_]+)%s*%(%s*%)"
+end
+
+--- 方法参数匹配规则
 local PARAM_PATTERN = "@param%s*([%w_]+)%s*([%w_]+)%s*([^\n]*)"
+
+--- 方法返回结果匹配规则
 local RESULT_PATTERN = "@return%s*([^\n]*)%s*"
+
+--- 方法可能抛出的异常匹配规则
 local ERROR_PATTERN = "@error%s*([^\n]*)%s*"
+
+--- 异常错误号匹配规则
 local ECODE_PATTERN = "([%w_]+%.[%w_]+)"
 
 --- 开发控制器
@@ -27,7 +41,7 @@ local function parseModule(module)
 
     local path = sysConf.ROOT_PATH .. "/code/ctrl/" .. module .. ".lua"
     local content = util:readFile(path)
-    local moduleDesc = content:match(MODULE_PATTERN)
+    local moduleDesc = content:match(MODULE_PATTERN(moduleName))
 
     if not moduleDesc then
         exception:raise("core.parseFailed", { file = path, module = module })
@@ -35,7 +49,7 @@ local function parseModule(module)
 
     local info = { desc = moduleDesc, methods = {} }
 
-    for methodDesc, methodComment, methodName in content:gmatch(COMMENT_PATTERN) do
+    for methodDesc, methodComment, methodName in content:gmatch(COMMENT_PATTERN(moduleName)) do
         local errors = {}
         local params = {}
 
