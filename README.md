@@ -6,9 +6,9 @@ zOpenLua
 ====
 zOpenLua 一个基于 Openresty 的轻量级 web 应用框架，适用于业务逻辑比较复杂的 web 应用。   
 zOpenLua 基于 HTTP 协议，并使用 Push Stream Module 实现了消息推送，足以满足一般非 ARPG 手游页游需求。     
-zOpenLua 还实现了基于 Redis 的 Session、请求重试处理机制、上行消息 Gzip 压缩、通讯消息加密、静态数据模块缓存、统一错误处理、数据修改自动记录下发等高级特性。   
+zOpenLua 还实现了基于 Redis 的 Session、请求重试处理机制、上行消息 Gzip 压缩、通讯消息加密、静态数据模块化缓存、统一错误处理、用户数据修改监控和自动下发等高级特性。   
 zOpenLua 目前有 redis、memcache、mysql 三种数据驱动，所有数据驱动均实现了请求级单例，并支持连接池特性。  
-zOpenLua 目前以应用于线上的手机游戏项目《小小兽人》，负载能力较传统 PHP 实现有明显的大幅提升。    
+zOpenLua 目前以应用于线上的手机游戏项目《小小兽人》，负载能力较传统 PHP 实现有本质性的大幅提升。    
 使用 zOpenLua 和 PHP 实现相同的简单测试业务逻辑，并进行 AB 测试，zOpenLua 的效率大约是 PHP 代码的 3-5 倍以上，而且错误率极低。
 
 功能示例
@@ -16,7 +16,7 @@ zOpenLua 目前以应用于线上的手机游戏项目《小小兽人》，负�
 目前 zOpenLua 默认的返回数据格式为 JSON，请安装 JsonView 浏览器插件。   
 除注册和登录以外的请求，需要传递认证参数 token，其值由注册或登录接口返回。
 
-接口文档及接口测试工具，请由 **[此处](http://zlua.zivn.me/docs/)** 进入。
+接口文档及接口测试工具，请由 [》zDocs《](http://zlua.zivn.me/docs/) 进入。
 
 高级特性
 ====
