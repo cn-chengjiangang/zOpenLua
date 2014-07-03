@@ -295,7 +295,7 @@ zOpenLua 使用 **Nginx Push Stream Module** 实现了消息推送，详见 **co
     > 编译时需要修改 **Lua-zlib** 的 **MakeFile** 中的 **INCDIR**。   
     `INCDIR   = -I/usr/local/openresty/luajit/include/luajit-2.1`   
 
-*如果是 64 位 **CentOS** 系统，可用 **soft/soft.sh** 安装上述软件。*
+_如果是 64 位 **CentOS** 系统，可用 **soft/soft.sh** 安装上述软件。_
 
 ## Nginx 配置
 框架运作需要在 **Nginx** 的 **http** 和 **server** 中增加相关配置：    
