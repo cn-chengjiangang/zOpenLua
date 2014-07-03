@@ -99,7 +99,7 @@ var docs = {
 
         $("#test-return").html("<strong>loading...</strong>");
         $.ajax({
-            url: "/",
+            url: "/lua",
             type: "GET",
             data: params,
             timeout: 5000,
