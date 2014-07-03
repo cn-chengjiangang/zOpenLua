@@ -13,53 +13,10 @@ zOpenLua 目前以应用于线上的手机游戏项目《小小兽人》，负�
 
 功能示例
 ====
-请自行替换示例中的参数，目前 zOpenLua 返回的数据格式为 Json。    
-要正确解析示例返回，请安装 JsonView 浏览器插件。   
+目前 zOpenLua 默认的返回数据格式为 JSON，请安装 JsonView 浏览器插件。   
 除注册和登录以外的请求，需要传递认证参数 token，其值由注册或登录接口返回。
 
-### 用户注册
-* http://zlua.zivn.me/lua?op=101&name=str{4,12}&passwd=str{6,12}&icon=int[1,10]&heroId=int[1,10]
-* http://zlua.zivn.me/lua?act=User.register&name=str{4,12}&passwd=str{6,12}&icon=int[1,10]&heroId=int[1,10]
-
-### 用户登录
-* http://zlua.zivn.me/lua?op=102&name=str{4,12}&passwd=str{6,12}
-* http://zlua.zivn.me/lua?act=User.login&name=str{4,12}&passwd=str{6,12}   
-
-### 发送聊天消息
-* http://zlua.zivn.me/lua?op=1&channel=int&content=str&token=str{32}
-* http://zlua.zivn.me/lua?act=Chat.say&channel=int&content=str&token=str{32}
-
-### 修改头像
-* http://zlua.zivn.me/lua?op=103&icon=int[1,10]&token=str{32}    
-* http://zlua.zivn.me/lua?act=User.changeIcon&icon=int[1,10]&token=str{32}    
-
-### 购买英雄
-* http://zlua.zivn.me/lua?op=201&heroId=int[1,10]&token=str{32}    
-* http://zlua.zivn.me/lua?act=Hero.buy&heroId=int[1,10]&token=str{32}    
-
-### 出售英雄
-* http://zlua.zivn.me/lua?op=202&sellIds=int[1,10],int[1,10],int[1,10]...&token=str{32}    
-* http://zlua.zivn.me/lua?act=Hero.sell&sellIds=int[1,10],int[1,10],int[1,10]...&token=str{32}    
-
-### 英雄吞噬升级
-* http://zlua.zivn.me/lua?op=203&heroId=int[1,10]&devourIds=int[1,10],int[1,10],int[1,10]...&token=str{32}        
-* http://zlua.zivn.me/lua?act=Hero.devour&heroId=int[1,10]&devourIds=int[1,10],int[1,10],int[1,10]...&token=str{32}        
-
-### 购买装备
-* http://zlua.zivn.me/lua?op=301&equipId=int[1,10]&token=str{32}    
-* http://zlua.zivn.me/lua?act=Equip.buy&equipId=int[1,10]&token=str{32}    
-
-### 出售装备
-* http://zlua.zivn.me/lua?op=302&sellIds=int[1,10],int[1,10],int[1,10]...&token=str{32}    
-* http://zlua.zivn.me/lua?act=Equip.sell&sellIds=int[1,10],int[1,10],int[1,10]...&token=str{32}    
-
-### 装备装备
-* http://zlua.zivn.me/lua?op=303&heroId=int[1,10]&position=int[1,10]&equipId=int[1,10]&token=str{32}    
-* http://zlua.zivn.me/lua?act=Equip.equip&heroId=int[1,10]&position=int[1,10]&equipId=int[1,10]&token=str{32}    
-
-### 装备升级
-* http://zlua.zivn.me/lua?op=304&equipId=int[1,10]&token=str{32}    
-* http://zlua.zivn.me/lua?act=Equip.refine&equipId=int[1,10]&token=str{32}    
+接口文档及接口测试工具，请由 **[此处](http://zlua.zivn.me/docs/)** 进入。
 
 高级特性
 ====
