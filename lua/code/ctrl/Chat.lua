@@ -105,7 +105,7 @@ end
 -- @return {"channel":1,"zoneOffset":28800,"serverTime":1403601121,"v":8509,"content":"test","fromId":1,"fromName":"zivn"}
 function Chat:tell() end
 
---- 推送 Ping 消息（推送）
+--- 推送Ping消息（推送）
 --
 -- @return {"channel":3,"zoneOffset":28800,"serverTime":1403601121,"v":8509}
 function Chat:ping() end
