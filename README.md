@@ -1,27 +1,32 @@
 zOpenLua
 ====
-一个基于Openresty的轻量级web应用框架。
+一个基于 **Openresty** 的轻量级 web 应用框架。
 
 框架说明
 ====
-zOpenLua 一个基于 Openresty 的轻量级 web 应用框架，适用于业务逻辑比较复杂的 web 应用。   
-zOpenLua 基于 HTTP 协议，并使用 Push Stream Module 实现了消息推送，足以满足一般非 ARPG 手游页游需求。     
-zOpenLua 还实现了基于 Redis 的 Session、请求重试处理机制、上行消息 Gzip 压缩、通讯消息加密、静态数据模块化缓存、统一错误处理、用户数据修改监控和自动下发等高级特性。   
-zOpenLua 目前有 redis、memcache、mysql 三种数据驱动，所有数据驱动均实现了请求级单例，并支持连接池特性。  
-zOpenLua 目前以应用于线上的手机游戏项目《小小兽人》，负载能力较传统 PHP 实现有本质性的大幅提升。    
-使用 zOpenLua 和 PHP 实现相同的简单测试业务逻辑，并进行 AB 测试，zOpenLua 的效率大约是 PHP 代码的 3-5 倍以上，而且错误率极低。
++ 基于 **Openresty**，适用于业务逻辑比较复杂的 web 应用。   
++ 基于 HTTP 协议，使用 **Nginx Push Stream Module** 实现了消息推送。     
++ 实现了基于 **Redis** 的会话身份认证机制。
++ 实现了请求重试处理机制。
++ 实现了上行消息 Gzip 压缩的自动处理机制。
++ 实现了上下行通讯消息加密处理机制。
++ 实现了静态数据的模块化缓存处理机制。
++ 实现了统一可定制的错误处理机制。
++ 实现了用户数据修改的监控和自动下发处理机制。
++ 框架目前有 **Redis**、**Memcache**、**MySQL** 三种数据驱动，均实现了请求级别单例，并支持连接池特性。  
++ 框架目前已应用于线上的手机游戏项目《小小兽人》，较同等 PHP 项目负载能力有本质性提升。 
 
 功能示例
 ====
-目前 zOpenLua 默认的返回数据格式为 JSON，请安装 JsonView 浏览器插件。   
-除注册和登录以外的请求，需要传递认证参数 token，其值由注册或登录接口返回。
+>+ zOpenLua 默认的返回数据格式为 JSON，为了正常调试接口，请安装 JsonView 浏览器插件。   
+>+ 除注册和登录以外的请求，需要传递认证参数 token，其值由注册或登录接口返回。
 
-接口文档及接口测试工具，请由 [》zDocs《](http://zlua.zivn.me/docs/) 进入。
+接口文档及接口测试工具，请由 [> zDocs <](http://zlua.zivn.me/docs/) 进入。
 
 高级特性
 ====
-### 基于 Redis 的 Session
-zOpenLua 实现了一套基于 Redis 的会话验证机制，详见 core.session 模块。    
+### 1. 基于 Redis 的会话身份认证
+zOpenLua 实现了一套基于 Redis 的会话身份认证机制，详见 [core.session](#) 模块。    
 
 在登录后，生成唯一的会话验证密钥，并以密钥为键名将会话信息存储到 Redis 中。   
 会话验证密钥会返回给客户端，后续请求中都需要传递会话验证密钥 token 参数，以便身份认证。   
@@ -190,8 +195,7 @@ Push Stream 是一个 Nginx Comet 解决方案，支持 WebSocket 和 Long Polli
 
 频道名字目前采用 (SERVER_MARK)(channelPrefix)[extendId]。    
 例如，本项目目前有 3 个频道，世界、心跳、用户，假设用户 ID 是 1，SERVER_MARK 是 dev。   
-则应监听的链接为：`http://zlua.zivn.me/sub/devworld.b20/devping/devuser1.b20`   
-**.b20** 代表获取频道最后 20 条消息。  
+则应监听的链接为：`http://zlua.zivn.me/sub/devworld.b20/devping/devuser1.b20`（**.b20** 代表获取频道最后 20 条消息）。   
 
 以下是监听频道的示例返回，共收到了 2 次 ping 消息和一次世界频道聊天消息：
 
@@ -351,21 +355,24 @@ Push Stream 是一个 Nginx Comet 解决方案，支持 WebSocket 和 Long Polli
 
 核心模块说明
 ====
-## main.lua
-整个项目的入口文件，由此进入 Lua 代码控制，以实现复杂的业务逻辑功能。   
-main.lua 定义了一些全局函数，并启动应用。
+## main <main.lua>
+main.lua 是整个项目的入口文件，从此出接入应用，依托 zOpenLua 框架实现复杂的业务逻辑功能。   
+main.lua 定义了一些全局函数，并从此处启动应用。   
 
 #### _G.loadMod(namespace)
-用于替代 require 函数，配合 lua_package_path 和 SERVER_DIR 实现无障碍加载文件，并隔离每个 server 加载的模块，实现同机多应用。   
+loadMod 用于替代 require 函数，配合 lua_package_path 和 SERVER_DIR 实现无障碍加载文件，并隔离每个 server 加载的模块，实现同机多应用。   
 
 例如，在项目中加载 core\util.lua，可用 `local util = loadMod("core.util")`。   
 实际 require 参数为 **zlua_zivn_me.lua.core.util**，对应路径为 **zlua_zivn_me\lua\core\util.lua**。
 
-#### _G.saveMod(namespace, model)
-用于保存数据为已加载模块，原理是构造模块名，并将数据存入 **package.loaded** 表。
+注意，loadMod 仅限于加载项目内模块，对与系统级的模块，如 cjson 等，还是应该用 require 加载。   
 
-## core.app
-对应 core\app.lua 文件，主应用模块，主要作用是应用初始化、请求路由和处理、应用清理。   
+#### _G.saveMod(namespace, model)
+用于保存数据为已加载模块，原理是构造模块名，并将数据存入 **package.loaded** 表。   
+静态数据模块化缓存特性，正是使用此函数完成。   
+
+## core.app <core\app.lua>
+主应用模块，主要作用是应用初始化、请求路由和处理、应用清理。   
 外部只需调用 **app:run()** 即可，其他方法均为内部使用。
 
 #### app:init()
@@ -383,35 +390,58 @@ main.lua 定义了一些全局函数，并启动应用。
 最后执行对应控制器的 **cleaner** 方法，用于控制器通用的结束清理。      
 详见 core.base.ctrl 模块中的对应说明。       
 
-## core.response 
-对应 core\response.lua 文件，主要用于请求数据处理、分析请求参数。
+## core.response
+对应 core\response.lua 文件。  
+
+请求处理模块，主要作用是请求数据分析、处理和获取请求参数。
+
+请求参数中，有几个关键参数：   
++ **act**   
+  act 是请求动作定义参数，格式是 **module.method**。   
+  act 用于请求的路由和分发，应用根据 act 将请求分发给对应控制器（module）的方法（method）。 
+  
++ **op**   
+  op 是请求操作码定义参数，op 与 act 一一对应，对应关系定义在 config.action 中。  
+  在应用内部 op 会被转化为 act，再根据 act 进行请求的路由和分发。 
+
++ **token**   
+  token 是请求认证密钥定义参数，用于认证使用者的身份，机制和传统 session 机制一致。   
+  token 相当于传统 session 机制的 session_id，区别是通过请求参数提交。   
+  token 的值来自于登录和注册接口的返回数据。   
+  token 的参数名可以自定义，如需修改请自行调整 config.system 里的 SESSION_TOKEN_NAME。    
++ **r**   
+  r 是请求随机数定义参数，用于请求重试机制，机制原理在“请求重试处理机制”中有过介绍。   
+  每个一般性请求都应提交不同的 r 值，仅当请求重试时发送相同的 r 值。   
+  如果没有发送 r 值，此请求将不会进行请求重试处理。     
+  r 的参数名可以自定义，如需修改请自行调整 config.system 里的 RETRY_RANDOM_PARAM。 
 
 #### parseArgs(args, data)
 局部函数，用于格式化请求数据，其中包含了对请求中动作参数（act 和 op）的处理。
 
 #### parseRequestData()
 局部函数，用于分析请求数据，并存储到 ngx.ctx[Request]。   
-包括对 GET 数据的解析、对 POST 数据的解析（包括解压、解密）、对 Cookie 数据的解析、从 op 得到 act 等，具体细节请阅读代码。   
+包括对 GET 和 POST 数据的解析（包括解压、解密）、对 Cookie 数据的解析、转换 op 为 act 等，具体细节请阅读代码。   
 
 #### getRequestData()
-局部函数，获取请求数据，将返回请求解析数据。如未曾解析，则会先解析并保存后再返回。
+局部函数，获取请求数据，返回请求解析数据。如未曾解析，则会先解析并保存后再返回。
 
 #### request:getOp()
-获取请求操作码，将返回整形请求操作码。   
-op 是请求定义参数，在内部会被转化为 act，然后分发。   
-op 和 act 的对应关系，定义在 config.action 中。
+获取请求操作码，返回整形请求操作码。   
 
 #### request:getAction()
-获取请求动作，将返回表 `[module, method]`。
+获取请求动作，返回表 `[module, method]`。
+act 是请求动作定义参数，格式是 **module.method**。   
+act 是请求路由的依据，应用根据 act 将请求分发给对应 module 的 method。   
+为了使用方便，我们在请求中一般使用与 act 一一对应的 op。
 
 #### request:getCookie(key)
-获取Cookie中指定键的值，将返回对应 key 的字符串 Cookie 值。
+获取Cookie中指定键的值，返回对应 key 的字符串 Cookie 值。
 
 #### request:getTime()
-获取请求发起时间，将返回请求发起的时间戳。
+获取请求发起时间，返回请求发起的时间戳。
 
 #### request:getIp()
-获取请求发起IP，将返回请求发起客户端的字符串 IP 地址。
+获取请求发起IP，返回请求发起客户端的字符串 IP 地址。
 
 #### request:isLocal()
 是否为本机请求，将返回请求是否由本机发起的布尔值。
