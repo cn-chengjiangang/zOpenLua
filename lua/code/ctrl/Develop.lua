@@ -161,7 +161,7 @@ function Develop:makeDocs()
     local jsPath = ngx.var.document_root .. "/docs/js/docs.data.js"
     local docsData = {
         version = "1.0",
-        domain = ngx.var.server_name,
+        domain = ngx.var.server_name.."/lua",
         ops = ops,
         errors = errors,
         modules = modules
