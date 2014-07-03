@@ -203,7 +203,7 @@ zOpenLua 实现了用户数据修改监控和自动下发，详见 **core.change
 
 ## 8. 消息推送
 zOpenLua 使用 **Nginx Push Stream Module** 实现了消息推送，详见 **core.push** 模块。     
-*通过消息推送，可以实现简单的聊天室，详见 **code.ctrl.Chat** 模块。*     
+_通过消息推送，可以实现简单的聊天室，详见 **code.ctrl.Chat** 模块。_    
 
 > **Nginx Push Stream Module** 是一个 **Comet** 解决方案，支持 **WebSocket**、**Long Polling** 等多种模式。  
 > [Nginx Push Stream Module](https://github.com/wandenberg/nginx-push-stream-module) 的文档请自行参阅其 Github。   
@@ -257,7 +257,7 @@ zOpenLua 使用 **Nginx Push Stream Module** 实现了消息推送，详见 **co
     } 
 
 
-*共收到了 2 次 ping 消息和一次世界频道聊天消息。*
+_共收到了 2 次 **ping** 消息和一次世界频道聊天消息。_
 
 > 由于频繁重连，并设置了连接时获取最后数条消息，可能造成客户端接收到重复消息，并导致重复处理。  
 > 为此，我们在消息中增加了版本号 **v**，每次服务端推送消息 **v** 都会递增，并在消息中下发给客户端。  
@@ -383,85 +383,87 @@ _如果是 64 位 **CentOS** 系统，可用 **soft/soft.sh** 安装上述软件
 
 核心模块说明
 ====
-## main <main.lua>
-main.lua 是整个项目的入口文件，从此出接入应用，依托 zOpenLua 框架实现复杂的业务逻辑功能。   
-main.lua 定义了一些全局函数，并从此处启动应用。   
+## main
+> _对应 **main.lua** 文件。_   
+ 
+**main** 是整个项目的入口文件，定义了一些全局函数，并从此处启动应用。   
 
 #### _G.loadMod(namespace)
-loadMod 用于替代 require 函数，配合 lua_package_path 和 SERVER_DIR 实现无障碍加载文件，并隔离每个 server 加载的模块，实现同机多应用。   
+**loadMod** 用于替代 **require** 函数，配合 **lua_package_path** 和 **SERVER_DIR** 实现无障碍加载文件。   
+**loadMod** 实现了各个 **nginx server** 加载模块的隔离，可在同一 **nginx** 上定义多个不同版本的 **server**。      
 
-例如，在项目中加载 core\util.lua，可用 `local util = loadMod("core.util")`。   
-实际 require 参数为 **zlua_zivn_me.lua.core.util**，对应路径为 **zlua_zivn_me\lua\core\util.lua**。
+> 在项目中加载 **core\util.lua**，可用 `local util = loadMod("core.util")`。   
+> 实际 **require** 参数为 **zlua_zivn_me.lua.core.util**，对应路径为 **zlua_zivn_me\lua\core\util.lua**。
 
-注意，loadMod 仅限于加载项目内模块，对与系统级的模块，如 cjson 等，还是应该用 require 加载。   
+注意，**loadMod** 仅限于加载项目内模块，对与系统级的模块，如 **cjson** 等，还是应该用 **require** 加载。   
 
 #### _G.saveMod(namespace, model)
-用于保存数据为已加载模块，原理是构造模块名，并将数据存入 **package.loaded** 表。   
-静态数据模块化缓存特性，正是使用此函数完成。   
+用于保存数据为已加载模块，原理是构造模块名，并将数据存入 **package.loaded** 表。     
 
-## core.app <core\app.lua>
+## core.app
+> _对应 **core\app.lua** 文件。_   
+
 主应用模块，主要作用是应用初始化、请求路由和处理、应用清理。   
-外部只需调用 **app:run()** 即可，其他方法均为内部使用。
+外部仅限调用 **app:run()**，其他方法均为内部使用。
 
 #### app:init()
 应用初始化。定义项目跟路径，初始化随机数种子（用于解决随机数不平均问题）。
 
 #### app:clean()
-应用清理。用户会话锁解锁（见 core.session 模块）、关闭数据驱动（见 core.driver.* 模块）。
+应用清理。用户会话锁解锁（见 **core.session** 模块）、关闭数据驱动（见 __core.driver.*__ 模块）。
 
 #### app:route()
-请求路由分发。请求重试机制处理（见 core.response 模块）、请求路由、请求执行。   
+请求路由分发。请求重试机制处理（见 **core.response** 模块）、请求路由分发、请求执行。   
 
-当请求被判定为非重试请求时，app 模块会将请求分发给对应的控制器。    
-请求执行时，会先执行对应控制器的 **filter** 方法，用于控制器通用的前置条件过滤判断。       
-再执行请求对应的控制器方法，以处理业务逻辑。      
-最后执行对应控制器的 **cleaner** 方法，用于控制器通用的结束清理。      
-详见 core.base.ctrl 模块中的对应说明。       
+> 当请求被判定为非重试请求时，会将请求分发给对应的控制器。    
+> 请求执行时，会先执行对应控制器的 **filter** 方法，用于控制器通用的前置条件过滤判断。       
+> 再执行对应的控制器的请求对应方法，以处理业务逻辑。      
+> 最后执行对应控制器的 **cleaner** 方法，用于控制器通用的结束清理。      
+> 详见 **core.base.ctrl** 模块中的对应说明。       
 
-## core.response
-*对应 core\response.lua 文件。*   
+## core.request
+> _对应 **core\request.lua** 文件。_
+   
 请求处理模块，主要作用是请求数据分析、处理和获取请求参数。
 
 >请求参数中，有几个关键参数：   
-#### **act**   
-  act 是请求动作定义参数，格式是 **module.method**。   
-  act 用于请求的路由和分发，应用根据 act 将请求分发给对应控制器（module）的方法（method）。 
+### **act**   
+  **act** 是请求动作定义参数，格式是 **module.method**。   
+  **act** 用于请求的路由和分发，应用根据 **act** 将请求分发给对应控制器（**module**）的方法（**method**）。 
 >  
-#### **op**   
-  op 是请求操作码定义参数，op 与 act 一一对应，对应关系定义在 config.action 中。  
-  在应用内部 op 会被转化为 act，再根据 act 进行请求的路由和分发。 
+### **op**   
+  **op** 是请求操作码定义参数，**op** 与 **act** 一一对应，对应关系定义在 **config.action** 中。  
+  在应用内部 **op** 会被转化为 **act**，再根据 **act** 进行请求的路由和分发。 
 >
-#### **token**   
-  token 是请求认证密钥定义参数，用于认证使用者的身份，机制和传统 session 机制一致。   
-  token 相当于传统 session 机制的 session_id，区别是通过请求参数提交。   
-  token 的值来自于登录和注册接口的返回数据。   
-  token 的参数名可以自定义，如需修改请自行调整 config.system 里的 SESSION_TOKEN_NAME。
+### **token**   
+  **token** 是请求认证密钥定义参数，用于认证使用者的身份，机制原理在 [基于 Redis 的会话身份认证](#1-基于-Redis-的会话身份认证) 中有介绍。   
+  **token** 的值来自于登录和注册接口的返回数据，是一个 32 个字符的字符串。   
+  **token** 的参数名可以自定义，如需修改请自行调整 **config.system** 里的 **SESSION_TOKEN_NAME**。
 
 >    
-#### **r**   
-  r 是请求随机数定义参数，用于请求重试机制，机制原理在“请求重试处理机制”中有过介绍。   
-  每个一般性请求都应提交不同的 r 值，仅当请求重试时发送相同的 r 值。   
-  如果没有发送 r 值，此请求将不会进行请求重试处理。     
-  r 的参数名可以自定义，如需修改请自行调整 config.system 里的 RETRY_RANDOM_PARAM。 
+### **r**   
+  **r** 是请求随机数定义参数，用于请求重试处理，机制原理在 [请求重试处理机制](#2-请求重试处理) 中有介绍。   
+  如果请求没有发送 **r** 值，将不会进行请求重试处理。     
+  **r** 的参数名可以自定义，如需修改请自行调整 **config.system** 里的 **RETRY_RANDOM_PARAM**。 
 
 #### parseArgs(args, data)
-局部函数，用于格式化请求数据，其中包含了对请求中动作参数（act 和 op）的处理。
+局部函数，用于格式化请求数据，其中包含了对请求动作参数的处理。
 
 #### parseRequestData()
-局部函数，用于分析请求数据，并存储到 ngx.ctx[Request]。   
-包括对 GET 和 POST 数据的解析（包括解压、解密）、对 Cookie 数据的解析、转换 op 为 act 等，具体细节请阅读代码。   
+局部函数，用于分析请求数据，并存储到 **ngx.ctx**。   
+包括对 **GET** 和 **POST** 数据的解析（包括解压、解密）、对 **Cookie** 数据的解析、**op** 转换为 **act** 等，具体细节请阅读代码。   
 
 #### getRequestData()
-局部函数，获取请求数据，返回请求解析数据。如未曾解析，则会先解析并保存后再返回。
+局部函数，获取请求数据，返回解析后的请求数据。如请求未被解析，则会先解析并保存后再返回。
 
 #### request:getOp()
-获取请求操作码，返回整形请求操作码。   
+获取请求操作码，返回整形的请求操作码。   
 
 #### request:getAction()
-获取请求动作，返回表 `[module, method]`。
+获取请求动作，返回表 `{ module, method }`。
 
 #### request:getCookie(key)
-获取Cookie中指定键的值，返回对应 key 的字符串 Cookie 值。
+获取Cookie中指定键名的值，返回 Cookie 中对应键名的字符串值。
 
 #### request:getTime()
 获取请求发起时间，返回请求发起的时间戳。
@@ -470,7 +472,7 @@ loadMod 用于替代 require 函数，配合 lua_package_path 和 SERVER_DIR 实
 获取请求发起IP，返回请求发起客户端的字符串 IP 地址。
 
 #### request:isLocal()
-是否为本机请求，将返回请求是否由本机发起的布尔值。
+是否为本机请求，返回请求是否由本机发起的布尔值。
 
 #### request:getNumParam(name, abs, nonzero)
 获取请求参数中的数字参数，将返回请求参数中对应参数名的数字值。   
@@ -484,7 +486,7 @@ nonempty 指定是否在字符串值为 "" 或未指定时抛出异常。
 
 #### request:getNumsParam(name, abs, nonempty)
 获取请求参数中的数字序列参数，将返回请求参数中对应参数名的数字值序列。   
-上行参数需要是用同一非数字字符隔开的多个数字字符串，例如 `1,2,3` 或 `1;2;3`。   
+上行参数需要是用同一非数字字符隔开的多个数字组成的字符串，例如 `1,2,3` 或 `1;2;3`。   
 abs 指定是否需要对数字值序列中的数值进行绝对值操作。  
 nonempty 指定是否在数字值序列为空或未指定时抛出异常。
 
