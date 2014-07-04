@@ -92,7 +92,7 @@ function Schedule:run()
         end
     end
 
-    response:output(table.concat(result, "\n"), true, true)
+    response:output(table.concat(result, "\n"), true)
 end
 
 --- 推送 Ping 消息

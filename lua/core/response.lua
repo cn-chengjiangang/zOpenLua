@@ -26,16 +26,18 @@ end
 
 --- 输出应答数据(Json格式，调试模式时会在header中加入调试信息)
 --
--- @param table message 消息
+-- @param table|string message 消息
 -- @param boolean noCache 不缓存
-function Response:output(message, noCache, noEncode)
-    json.encode_sparse_array(true)
-    local content = noEncode and message or json.encode(message)
+function Response:output(message, noCache)
+    if not util:isString(message) then
+        json.encode_sparse_array(true)
+        message = json.encode(message)
+    end
 
     ngx.status = ngx.HTTP_OK
     ngx.header.charset = sysConf.DEFAULT_CHARSET
     ngx.header.content_type = "application/json"
-    ngx.header.content_length = content:len() + 1
+    ngx.header.content_length = message:len() + 1
 
     if sysConf.DEBUG_MODE then
         ngx.header.mysqlQuery = counter:get(counter.COUNTER_MYSQL)
@@ -45,10 +47,10 @@ function Response:output(message, noCache, noEncode)
     end
 
     if sysConf.ENCRYPT_REPLY then
-        content = util:encrypt(body, sysConf.ENCRYPT_KEY)
+        message = util:encrypt(message, sysConf.ENCRYPT_KEY)
     end
 
-    ngx.say(content)
+    ngx.say(message)
     ngx.eof()
 
     if not noCache then
@@ -57,7 +59,7 @@ function Response:output(message, noCache, noEncode)
         local r = request:getStrParam(sysConf.RETRY_RANDOM_PARAM)
 
         if token ~= "" and r ~= "" then
-            self.cacheHelper:set(LAST_RES_PREFIX .. token, { action = action, r = r, content = content }, 3600)
+            self.cacheHelper:set(LAST_RES_PREFIX .. token, { action = action, r = r, reply = message }, 3600)
         end
     end
 end
@@ -122,7 +124,7 @@ function Response:checkRetry()
         local lastRes = self.cacheHelper:get(LAST_RES_PREFIX .. token)
 
         if lastRes and lastRes.action == action and lastRes.r == r then
-            self:output(lastRes.content, true, true)
+            self:output(lastRes.reply, true)
             return true
         end
     end
