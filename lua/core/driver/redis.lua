@@ -97,7 +97,7 @@ function Redis:execute(cmd, ...)
         exception:raise("core.badCall", { cmd = cmd, args = { ... } })
     end
 
-    counter:set(counter.COUNTER_REDIS)
+    counter:set(counter.REDIS)
 
     client:init_pipeline()
     client:select(self.dbIndex)

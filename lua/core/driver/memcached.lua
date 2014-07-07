@@ -93,7 +93,7 @@ function Memcached:execute(cmd, ...)
         exception:raise("core.badCall", { cmd = cmd, args = { ... } })
     end
 
-    counter:set(counter.COUNTER_MEMCACHED)
+    counter:set(counter.MEMCACHED)
 
     local result, errmsg = client[cmd](client, ...)
 

@@ -95,7 +95,7 @@ end
 -- @param string query 查询语句
 -- @return table 查询结果
 function MySQL:query(query)
-    counter:set(counter.COUNTER_MYSQL)
+    counter:set(counter.MYSQL)
 
     local result, errmsg, errno, sqlstate = getClient():query(query, self.jsonColSet)
 

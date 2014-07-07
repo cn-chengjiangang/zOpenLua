@@ -1,12 +1,12 @@
 local Counter = {
     --- 统计类型：MySQL查询次数
-    COUNTER_MYSQL = 0,
+    MYSQL = 0,
 
     --- 统计类型：Redis查询次数
-    COUNTER_REDIS = 1,
+    REDIS = 1,
 
     --- 统计类型：Memcached查询次数
-    COUNTER_MEMCACHED = 2,
+    MEMCACHED = 2,
 }
 
 --- 获取计数器数据

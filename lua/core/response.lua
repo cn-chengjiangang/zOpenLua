@@ -40,9 +40,9 @@ function Response:output(message, noCache)
     ngx.header.content_length = message:len() + 1
 
     if sysConf.DEBUG_MODE then
-        ngx.header.mysqlQuery = counter:get(counter.COUNTER_MYSQL)
-        ngx.header.redisCommand = counter:get(counter.COUNTER_REDIS)
-        ngx.header.memcachedCommand = counter:get(counter.COUNTER_MEMCACHED)
+        ngx.header.mysqlQuery = counter:get(counter.MYSQL)
+        ngx.header.redisCommand = counter:get(counter.REDIS)
+        ngx.header.memcachedCommand = counter:get(counter.MEMCACHED)
         ngx.header.execTime = ngx.now() - request:getTime()
     end
 
