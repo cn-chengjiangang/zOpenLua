@@ -29,7 +29,7 @@ end
 -- @return table 错误信息
 function Exception:pack(code, data)
     local realCode, desc = self:checkCode(code)
-    local err = { error = realCode, data = data, errInfo = {} }
+    local err = { error = realCode, data = data }
 
     if sysConf.DEBUG_MODE then
         local traceback = {}
@@ -43,8 +43,7 @@ function Exception:pack(code, data)
             index = index + 1
         end
 
-        err.errInfo.traceback = traceback
-        err.errInfo.desc = desc
+        err.errInfo = { traceback = traceback, desc = desc }
     end
 
     return err
