@@ -4,6 +4,7 @@
 + 基于 HTTP 协议，使用 **Nginx Push Stream Module** 实现了消息推送。     
 + 实现了基于 **Redis** 的会话身份认证。
 + 实现了请求重试处理。
++ 实现了用户请求队列。
 + 实现了上行数据 Gzip 压缩。
 + 实现了上下行数据加密。
 + 实现了静态数据的模块化缓存。
@@ -49,7 +50,34 @@ zOpenLua 实现了请求重试处理，详见 **core.app** 和 **core.response**
 > 每个非重试的请求都应有不同的 r 值，重试时发送相同的 r 值。   
 > 当服务端发现请求动作和 r 值与缓存的上次请求数据一致，则判定为请求重试，直接返回缓存数据。    
 
-## 3. 上行数据 Gzip 压缩
+## 3. 用户请求队列
+zOpenLua 实现了用户请求队列，详见 **core.session** 模块。
+
+在一般的业务逻辑流程中，数据往往是查询出来，经过业务逻辑处理后，再保存回数据库。   
+如果在查询到保存的间隔时间内，数据发生变更，则此时就发生了数据冲突，并且会产生不可预料的结果。  
+在实际项目中，数据冲突一般是涉及到同类用户数据的用户请求并发导致的，并且往往都来自同一用户。   
+因此，保证同一用户的请求依次执行是非常必要的，这也是用户请求队列机制的设计初衷。
+    
+> 处理用户请求的第一步是获取用户会话数据，因此，会在此步骤中添加用户操作锁，详见 **core.session**。  
+>  
+> 此时会向存储介质中添加一个由会话密钥和指定后缀（**[token].lock**）构成的 **Lock Key**，有效期为 **3** 秒。   
+> **Lock Key** 添加成功后，进行请求的处理，在请求处理完成后，在 **core.app** 的清理器中删除 **Lock Key**。   
+> **Lock Key** 添加失败时（**Lock Key** 已存在），会 **sleep 250ms** 再尝试添加，由此循环直至添加成功。   
+> 
+> 因为只有成功添加了 **Lock Key** 才会进行请求的处理，所以同一用户的请求是依次执行的。  
+> 由此确定了，同一用户的多个请求，哪怕同时被服务端收到，也不会造成并发处理导致数据冲突。  
+>
+> 由于 **Lock Key** 有 **3** 秒的有效期，**3** 秒后会被自动删除，所以并不会造成死锁。   
+> 当用户请求总是需要等待很长时间才有返回时，则应检查业务逻辑是否存在效率问题。
+>
+> 操作锁的有效期可以自定义，请自行调整 **config.system** 里的 **LOCKER_TIMEOUT**。  
+> 操作锁的重试等待时间可以自定义，请自行调整 **config.system** 里的 **LOCKER_RETRY_INTERVAL**。  
+>
+> 操作锁出于和 **会话身份认证** 一样的分布式考虑，也使用了 **Redis** 作为存储介质。  
+> 如果没有分布式需求，可修改代码将 **Redis** 替换为 **ngx.shared.DICT**，性能会更好一些。
+
+
+## 4. 上行数据 Gzip 压缩
 zOpenLua 实现了上行消息 Gzip 压缩，详见 **core.request** 模块。
 
 某些请求需要上行大量数据，由于手机网络不稳定，这种请求极易失败。   
@@ -59,7 +87,7 @@ zOpenLua 实现了上行消息 Gzip 压缩，详见 **core.request** 模块。
 > 客户端需要将 **POST** 数据 Gzip 压缩，并在 header 中发送 **Content-Encoding: gzip**。   
 > 服务端在接收到上行数据后，根据 header 判断是否需要先解压。   
 
-## 4. 上下行数据加密
+## 5. 上下行数据加密
 zOpenLua 实现了上下行数据加密，详见 **core.request** 和 **core.response** 模块。
 
 > 上下行数据均可加密，加密采用较简单的对称加密算法。   
@@ -67,7 +95,7 @@ zOpenLua 实现了上下行数据加密，详见 **core.request** 和 **core.res
 > 上行加密启用时，会先对上行 **POST** 数据解密后再进一步解析。   
 > 下行加密启用时，会对下行数据加密后再返回。
 
-## 5. 静态数据的模块化缓存
+## 6. 静态数据的模块化缓存
 zOpenLua 实现了静态数据的模块化缓存，详见 **core.base.staticDao** 模块。  
 
 在继承于 **staticDao** 的静态数据（类型数据）Dao 中，可定义缓存策略。   
@@ -84,7 +112,7 @@ zOpenLua 实现了静态数据的模块化缓存，详见 **core.base.staticDao*
 1. `nginx -s reload`   
 2. ``kill -HUP `cat nginx/logs/nginx.pid` ``   
 
-## 6. 统一错误处理
+## 7. 统一错误处理
 zOpenLua 实现了统一错误处理，详见 **core.exception** 模块。     
 
 > 可在程序任意处使用 `exception:raise(errCode, errData)` 抛出异常，中断当前代码的执行。   
@@ -95,7 +123,7 @@ zOpenLua 实现了统一错误处理，详见 **core.exception** 模块。
 > 未在 **config.error** 定义的 errCode 会在下发给客户端时转化为 **core.unknowErr**。    
 > errCode 一般使用 ***[module].[message]*** 格式，方便区分和定位，同一错误应复用 errCode。    
 
-## 7. 用户数据修改监控和自动下发
+## 8. 用户数据修改监控和自动下发
 zOpenLua 实现了用户数据修改监控和自动下发，详见 **core.changes** 和 **core.base.dyncDao** 模块。 
 
 对于游戏应用来说，一般会在首次进入时载入用户的所有主要数据。   
@@ -103,7 +131,7 @@ zOpenLua 实现了用户数据修改监控和自动下发，详见 **core.change
 
 > **changes** 会在获取会话信息时初始化。
 > **changes** 的主要处理机制封装在 **core.base.dyncDao** 中。   
-> 启用数据的 **changes** 特性，需要在 **config.changes** 中定义监控规则。
+> 启用数据的 **changes** 特性，需要在 **config.changes** 中定义监控规则。   
 > 启用数据的 **changes** 特性，需要在继承于 dyncDao 的动态数据 Dao 中，定义 **logChangeKey**。   
 
 根据 Dao 中定义的监控规则，每次对应的动态数据新增、更新、删除时，都会分析并记录数据更改。   
@@ -201,7 +229,7 @@ zOpenLua 实现了用户数据修改监控和自动下发，详见 **core.change
 2. *id 为 4 的 user 的 gold 变成了 9949710。*  
 3. *id 为 4 的 hero 的 exp 变成了 200。*  
 
-## 8. 消息推送
+## 9. 消息推送
 zOpenLua 使用 **Nginx Push Stream Module** 实现了消息推送，详见 **core.push** 模块。     
 _通过消息推送，可以实现简单的聊天室，详见 **code.ctrl.Chat** 模块。_    
 
@@ -426,25 +454,24 @@ _如果是 64 位 **CentOS** 系统，可用 **soft/soft.sh** 安装上述软件
    
 请求处理模块，主要作用是请求数据分析、处理和获取请求参数。
 
->请求参数中，有几个关键参数：   
-#### **act**   
-  **act** 是请求动作定义参数，格式是 **module.method**。   
-  **act** 用于请求的路由和分发，应用根据 **act** 将请求分发给对应控制器（**module**）的方法（**method**）。 
+> 请求参数中，有几个关键参数：   
+> ### `act`   
+> `act` 是请求动作定义参数，格式是 **module.method**。   
+> `act` 用于请求的路由和分发，应用根据 `act` 将请求分发给对应控制器（**module**）的方法（**method**）。 
 >  
-#### **op**   
-  **op** 是请求操作码定义参数，**op** 与 **act** 一一对应，对应关系定义在 **config.action** 中。  
-  在应用内部 **op** 会被转化为 **act**，再根据 **act** 进行请求的路由和分发。 
+> ### `op`
+> `op` 是请求操作码定义参数，`op` 与 `act` 一一对应，对应关系定义在 **config.action** 中。  
+> 在应用内部 `op` 会被转化为 `act`，再根据 `act` 进行请求的路由和分发。 
 >
-#### **token**   
-  **token** 是请求认证密钥定义参数，用于认证使用者的身份，机制原理在 [基于 Redis 的会话身份认证](#1-基于-Redis-的会话身份认证) 中有介绍。   
-  **token** 的值来自于登录和注册接口的返回数据，是一个 32 个字符的字符串。   
-  **token** 的参数名可以自定义，如需修改请自行调整 **config.system** 里的 **SESSION_TOKEN_NAME**。
-
->    
-#### **r**   
-  **r** 是请求随机数定义参数，用于请求重试处理，机制原理在 [请求重试处理机制](#2-请求重试处理) 中有介绍。   
-  如果请求没有发送 **r** 值，将不会进行请求重试处理。     
-  **r** 的参数名可以自定义，如需修改请自行调整 **config.system** 里的 **RETRY_RANDOM_PARAM**。 
+> ### `token`  
+> `token` 是请求认证密钥定义参数，用于认证使用者的身份，机制原理在 [基于 Redis 的会话身份认证](#1-基于-redis-的会话身份认证) 中有介绍。   
+> `token` 的值来自于登录和注册接口的返回数据，是一个 32 个字符的字符串。   
+> `token` 的参数名可以自定义，如需修改请自行调整 **config.system** 里的 **SESSION_TOKEN_NAME**。
+>   
+> ### `r`   
+> `r` 是请求随机数定义参数，用于请求重试处理，机制原理在 [请求重试处理机制](#2-请求重试处理) 中有介绍。   
+> 如果请求没有发送 `r` 值，将不会进行请求重试处理。     
+> `r` 的参数名可以自定义，如需修改请自行调整 **config.system** 里的 **RETRY_RANDOM_PARAM**。 
 
 ### parseArgs(args, data)
 局部函数，用于格式化请求数据，其中包含了对请求动作参数的处理。
@@ -490,9 +517,111 @@ _如果是 64 位 **CentOS** 系统，可用 **soft/soft.sh** 安装上述软件
 > **abs** 指定是否需要对数字值序列中的数值进行绝对值操作。  
 > **nonempty** 指定是否在数字值序列为空或未指定时抛出异常。
 
+# core.response
+> _对应 **core\response.lua** 文件。_
+   
+应答处理模块，主要作用是处理和下发请求（异常）数据，以及请求重试处理。
 
+> 目前 **response** 仅返回字符串和JSON格式数据，如有特殊需求可自行扩展。   
+> 不论是正常应答还是抛出异常，处理后都具有一致的标准格式。   
+> 标准应答格式有三个主要属性 `op`、`error`、`data`。 
+>
+> ### `op` 
+> `op` 是请求操作码，在 [core.request](#corerequest) 章节中有详述。
+>  
+> ### `error`
+> `error` 是错误代码，所有错误代码均在 **config.error** 里定义说明，在 [统一错误处理](#7-统一错误处理) 章节中有详述。   
+> 正常应答的 **error** 属性应为 ***null***，**error** 不为 ***null*** 则代表请求执行中抛出了异常。   
+> 异常应答在 ***DEBUG_MODE*** 模式开启时，还将具有 `errInfo` 属性，包含了错误说明和错误栈信息。  
+>
+> ### `data` 
+> `data` 是应答数据，在正常应答时代表请求返回的数据，异常应答时代表错误信息数据。  
+>   
+> ### `errInfo` 
+> `errInfo` 是仅当开启了 ***DEBUG_MODE*** 模式时，异常应答才具有的属性。   
+> `errInfo` 中包含了 `traceback`（错误栈）和 `desc`（错误说明）属性。
+> 
+> ### `changes` 
+> `changes` 是正常应答才具有的属性，返回注册了用户数据修改监控的数据变更信息。   
+> 关于用户数据修改监控的机制原理，在 [用户数据修改监控和自动下发](#8-用户数据修改监控和自动下发) 章节中有详述。 
 
+### response:init()
+应答模块初始化方法，用于初始化模块使用的 **redis** 存储处理器实例。
 
+### response:output(message, noCache)
+输出应答数据，其中包含了应答 **header** 构造、应答数据编码、应答数据加密、应答数据缓存的处理。   
+> 当传入的应答数据为表时，将会被编码为 **JSON** 格式，字符串数据则会被原样下发。    
+> 当 `noCache` 参数为 `true` 时，应答数据将不会被缓存，请求重试机制将不会生效。 
+>
+> 当开启了 ***DEBUG_MODE*** 模式时，应答 **header** 中将包含一些调试信息。   
+>
++ **mysqlQuery**：本次请求执行的 MySQL 查询次数。
++ **redisCommand**：本次请求执行的 Redis 命令次数。
++ **memcachedCommand**：本次查询执行的 Memcache 命令次数。
++ **execTime**：本次请求的执行时间。
 
+### response:reply(data, op, noChanges)
+下发正常应答消息，以 `data`（应答数据）和 `op`（请求操作码）构造正常应答消息并下发。    
+> `op` 未指定时，将从 **core.request** 中获取本次请求的 `op` 作为值。    
+> 当 `noChanges` 参数为 `true` 时，应答数据中将不包含 **changes** 信息。
+ 
+### response:error(err, op)
+下发异常应答消息，以 `err`（异常数据）和 `op`（请求操作码）构造异常应答消息并下发。
+> `err` 是通过 **exception:raise(code, data)** 抛出的异常或系统错误字符串信息。   
+> `op` 未指定时，将从 **core.request** 中获取本次请求的 `op` 作为值。   
+> **core.app** 模块会捕获业务逻辑抛出的异常和系统错误，并自动调用 **response:error(err, op)** 方法。   
+> 系统错误会被包装成 **core.systemErr**，而错误信息字符串会成异常应答的 **data.errmsg** 属性。
+>
+> 下面是一个异常应答的例子：
+>     
+    {
+        error: "core.badParams",
+        op: 101,
+        data: {
+            name: "name"
+        },
+        errInfo: {
+            traceback: [
+                "/data/web/zlua_zivn_me/lua/core/request.lua:170: in function 'getStrParam'",
+                "/data/web/zlua_zivn_me/lua/code/ctrl/User.lua:24: in function </data/web/zlua_zivn_me/lua/code/ctrl/User.lua:23>",
+                "/data/web/zlua_zivn_me/lua/core/app.lua:51: in function 'route'",
+                "/data/web/zlua_zivn_me/lua/core/app.lua:60: in function </data/web/zlua_zivn_me/lua/core/app.lua:58>",
+                "[C]: in function 'pcall'",
+                "/data/web/zlua_zivn_me/lua/core/app.lua:58: in function 'run'",
+                "/data/web/zlua_zivn_me/lua/main.lua:15: in function </data/web/zlua_zivn_me/lua/main.lua:1>"
+            ],
+            desc: "参数错误"
+        }
+    } 
 
+### response:checkRetry()
+
+请求重试检查，如请求被判定为重试且存在应答缓存数据，则直接下发应答缓存数据。   
+关于请求重试处理的机制原理，在 [请求重试处理](#2-请求重试处理) 章节中有详述。
+
+# core.session
+> _对应 **core\session.lua** 文件。_
+   
+会话信息处理模块，主要作用是注册用户会话信息、用户身份认证、用户操作锁处理。
+> **core.session** 使用了 **Redis** 作为会话信息存储介质，如无分布式需求，可改为使用 **ngx.shared.DICT**。
+
+### session:init()
+会话信息处理模块初始化方法，用于初始化模块使用的 **redis** 存储处理器实例。
+
+### session:register(userInfo)
+注册会话信息，存储用户会话信息，并生成会话验证密钥。
+> `userInfo` 参数必须具有 `userId` 属性，否则会抛出异常。   
+> 重复注册同一用户的会话信息，会使该用户之前注册的会话信息失效。
+
+### session:check(token)
+检查并获取用户会话信息，获取指定会话验证密钥对应的用户会话信息，并添加用户操作锁。
+> 找不到会话验证密钥对应的用户会话信息时，会抛出 **core.needLogin** 异常。
+> 关于用户操作锁的机制原理，在 [用户请求队列](#3-用户请求队列) 章节中有详述。
+
+### session:destroy(token)
+销毁用户会话信息，销毁指定会话验证密钥对应的用户会话信息。
+
+### session:unlock()
+解除本次会话的用户操作锁，解除本次请求的用户会话信息对应的用户操作锁。
+> **core.app** 模块会在请求执行结束后的清理工作中自动调用 **session:unlock()** 方法。
 
